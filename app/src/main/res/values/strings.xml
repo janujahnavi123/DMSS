@@ -1,0 +1,26 @@
+<resources>
+    <string name="app_name">Attendance</string>
+    <string name="toastTop">toasttop</string>
+    <string name="nameerror">enter teacher name</string>
+    <string name="emailerror">enter email</string>
+    <string name="passworderror">enter the password</string>
+    <string name="cpassworderror">enter the confirm password</string>
+    <string name="mobileerror">enter the mobile number</string>
+    <string-array name="subjectnames">
+        <item>select the subject</item>
+        <item>DBMS</item>
+        <item>MC</item>
+        <item>IOT</item>
+        <item>DMS</item>
+        <item>DMT</item>
+    </string-array>
+    <string-array name="branch">
+        <item>select the branch</item>
+        <item>CSE</item>
+        <item>IT</item>
+        <item>ECE</item>
+        <item>BIOTECH</item>
+        <item>MECHANICAL</item>
+    </string-array>
+
+</resources>
