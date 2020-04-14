@@ -19,29 +19,38 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.content.SharedPreferences;
+
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.basgeekball.awesomevalidation.AwesomeValidation;
 import com.basgeekball.awesomevalidation.ValidationStyle;
 import com.facebook.stetho.Stetho;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.Calendar;
-public class teacherregistration extends AppCompatActivity  {
-    EditText username1;
-    EditText email1;
-    EditText password1;
-    EditText mobilenumber1;
-    EditText confirmpass;
-    Spinner spinner1;
-    Spinner spinner2;
+
+public class teacherregistration extends AppCompatActivity {
+
+    EditText username1, email1, password1, mobilenumber1, confirmpass;
+    Spinner spinner1, spinner2;
     String use, pass, em, mobile, cpass, r, sp1, sp2;
     private AwesomeValidation awesomeValidation;
-    Button register, logout;
+    Button register;
+    FirebaseAuth mAuth;
+    FirebaseDatabase root;
+    DatabaseReference databaseReference;
+
     private Object startactivity;
-    public static final String PREFS_NAME = "LoginPrefs";
-
-
-
+    /*public static final String PREFS_NAME = "LoginPrefs";
+     */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,17 +60,17 @@ public class teacherregistration extends AppCompatActivity  {
         username1 = findViewById(R.id.username);
         email1 = findViewById(R.id.email);
         password1 = findViewById(R.id.password);
-        mobilenumber1 = findViewById(R.id.mobilenumber);
         confirmpass = findViewById(R.id.confirmpassword);
-        register = findViewById(R.id.regbutton);
-        logout = findViewById(R.id.logout);
         spinner1 = findViewById(R.id.spinner1);
         spinner2 = findViewById(R.id.spinner2);
+        mobilenumber1 = findViewById(R.id.mobilenumber);
+        register = findViewById(R.id.regbutton);
+        mAuth = FirebaseAuth.getInstance();
 
         awesomeValidation.addValidation(this, R.id.username, "^[A-Za-z\\s]{1,}[\\.]{0,1}[A-Za-z\\s]{0,}$", R.string.nameerror);
         awesomeValidation.addValidation(this, R.id.email, Patterns.EMAIL_ADDRESS, R.string.emailerror);
-        awesomeValidation.addValidation(this, R.id.password, "^[A-Za-z\\s]{1,}[\\.]{0,1}[A-Za-z\\s]{0,}$", R.string.passworderror);
-        awesomeValidation.addValidation(this, R.id.confirmpassword, "^[A-Za-z\\s]{1,}[\\.]{0,1}[A-Za-z\\s]{0,}$", R.string.cpassworderror);
+        /*awesomeValidation.addValidation(this, R.id.password, "^[A-Za-z\\s]{1,}[\\.]{0,1}[A-Za-z\\s]{0,}$", R.string.passworderror);
+        awesomeValidation.addValidation(this, R.id.confirmpassword, "^[A-Za-z\\s]{1,}[\\.]{0,1}[A-Za-z\\s]{0,}$", R.string.cpassworderror);*/
         awesomeValidation.addValidation(this, R.id.mobilenumber, "^[0-9]{2}[0-9]{8}$", R.string.mobileerror);
         register.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -85,7 +94,33 @@ public class teacherregistration extends AppCompatActivity  {
                                 Log.d("else", "username or password incorrect");
                                 Toast.makeText(MainActivity.this, "username or password incorrect", Toast.LENGTH_LONG).show();
                             }*/
-                            Toast.makeText(teacherregistration.this, use + "\t" + em + "\n" + mobile, Toast.LENGTH_SHORT).show();
+                            mAuth.createUserWithEmailAndPassword(em,pass).addOnCompleteListener(teacherregistration.this, new OnCompleteListener<AuthResult>() {
+                                @Override
+                                public void onComplete(@NonNull Task<AuthResult> task) {
+
+                                    if(task.isSuccessful()){
+                                        root = FirebaseDatabase.getInstance();
+                                        databaseReference = root.getReference().child("Teacher Registration");
+                                        teacherRegistrationDetails det = new teacherRegistrationDetails(use, pass, em,
+                                                mobile, sp1, sp2);
+                                        databaseReference.push().setValue(det).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                            @Override
+                                            public void onSuccess(Void aVoid) {
+                                                Toast.makeText(teacherregistration.this, "Registration Successfull", Toast.LENGTH_SHORT).show();
+                                            }
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                Toast.makeText(teacherregistration.this, "Registration Failed", Toast.LENGTH_SHORT).show();
+                                            }
+                                        });
+                                    }else {
+                                        // If sign in fails, display a message to the user.
+                                        Toast.makeText(teacherregistration.this, "Authentication failed.", Toast.LENGTH_SHORT).show();
+                                    }
+                                }
+                            });
+
 
                         }
                     }
@@ -97,8 +132,6 @@ public class teacherregistration extends AppCompatActivity  {
             }
         });
     }
-
-
 
 
 }
