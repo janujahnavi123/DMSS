@@ -7,26 +7,30 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:layout_gravity="center"
-    android:background="@drawable/at3"
-    tools:context=".MainActivity"
+    tools:context=".activity.SplashScreenActivity"
     android:orientation="vertical">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="250dp"
+        android:src="@drawable/at3"
+        android:contentDescription="@string/app_name"/>
 
     <TextView
         android:id="@+id/vv"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:gravity="center"
-        android:text="ATTENDANCE"
-        android:textColor="#AF0909"
-        android:textSize="25dp" />
+        android:text="@string/digital_attendance_system"
+        android:textColor="@color/colorPrimary"
+        android:textSize="19sp" />
     <ProgressBar
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:indeterminate="true"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        android:layout_marginTop="8dp"
-        />
+        android:layout_marginTop="8dp" />
 
 </LinearLayout>

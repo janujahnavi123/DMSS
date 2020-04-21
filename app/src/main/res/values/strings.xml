@@ -6,6 +6,36 @@
     <string name="passworderror">enter the password</string>
     <string name="cpassworderror">enter the confirm password</string>
     <string name="mobileerror">enter the mobile number</string>
+    <string name="digital_attendance_system">Digital Attendance System</string>
+    <string name="login">Login</string>
+    <string name="admin_login">ADMIN LOGIN</string>
+    <string name="teacher_login">TEACHER LOGIN</string>
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="add_teacher">ADD TEACHER</string>
+    <string name="view_teacher">VIEW TEACHER</string>
+    <string name="add_student">ADD STUDENT</string>
+    <string name="view_student">VIEW STUDENT</string>
+    <string name="submit">Submit</string>
+    <string name="faculty_name">Enter Faculty Name</string>
+    <string name="create_email">Enter Email</string>
+    <string name="create_password">Enter Password</string>
+    <string name="department">Department</string>
+    <string name="year">Year</string>
+    <string name="semester">Semester</string>
+    <string name="subject">Subject</string>
+    <string name="enter_student_name">Enter Student Name</string>
+    <string name="roll_number">Enter Roll Number</string>
+    <string name="logout">Logout</string>
+    <string name="add_subject">Add Subject</string>
+    <string name="enter_subject">Enter Subject</string>
+    <string name="no_data_found">No Data Found</string>
+    <string name="take_attendance">Take Attendance</string>
+    <string name="view_attendance">View Attendance</string>
+    <string name="name">Name</string>
+    <string name="number">Number</string>
+    <string name="present">Present</string>
+    <string name="absent">Absent</string>
     <string-array name="subjectnames">
         <item>select the subject</item>
         <item>DBMS</item>
@@ -21,6 +51,41 @@
         <item>ECE</item>
         <item>BIOTECH</item>
         <item>MECHANICAL</item>
+    </string-array>
+
+
+    <string-array name="department">
+        <item name="select">Select Department</item>
+        <item name="Civil">Civil</item>
+        <item name="EEE">EEE</item>
+        <item name="MECH">MECH</item>
+        <item name="ECE">ECE</item>
+        <item name="CSE">CSE</item>
+        <item name="BIOTECH">BIOTECH</item>
+    </string-array>
+
+    <string-array name="year">
+        <item name="select">Select Year</item>
+        <item name="1">1</item>
+        <item name="2">2</item>
+        <item name="3">3</item>
+        <item name="4">4</item>
+
+    </string-array>
+
+    <string-array name="semester">
+        <item name="select">Select Semester</item>
+        <item name="1">1</item>
+        <item name="2">2</item>
+
+    </string-array>
+
+    <string-array name="subject">
+        <item name="select">Select Subject</item>
+        <item name="M1">M1</item>
+        <item name="M2">M2</item>
+        <item name="M3">M3</item>
+
     </string-array>
 
 </resources>
