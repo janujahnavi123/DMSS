@@ -31,7 +31,6 @@
                 android:text="@string/add_teacher"
                 android:textColor="@android:color/white" />
 
-
             <Button
                 android:id="@+id/viewTeacher"
                 android:layout_width="match_parent"

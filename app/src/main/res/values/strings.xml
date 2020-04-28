@@ -36,6 +36,8 @@
     <string name="number">Number</string>
     <string name="present">Present</string>
     <string name="absent">Absent</string>
+    <string name="enter_faculty_phone">Enter Faculty Phone</string>
+    <string name="add_subjects_to_teacher">Add Subjects to Teacher</string>
     <string-array name="subjectnames">
         <item>select the subject</item>
         <item>DBMS</item>

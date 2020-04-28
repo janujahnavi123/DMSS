@@ -87,8 +87,8 @@ public class FacultyAttendanceAdapter extends BaseAdapter {
            }
        });
 
-        txtName.setText("Name : "+studentItemList.get(position).getStudentName());
-        txtRoll.setText("Number : "+studentItemList.get(position).getStudentRoll());
+        txtName.setText("Name : "+studentItemList.get(position).getStudentSubject());
+        txtRoll.setText("Number : "+studentItemList.get(position).getStudentSubject());
 
 
 

@@ -1,5 +1,6 @@
 package com.example.attendance.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
@@ -11,8 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.attendance.R;
-import com.example.attendance.adapter.FacultyListAdapter;
-import com.example.attendance.model.FacultyItem1;
+import com.example.attendance.adapter.SubjectListAdapter1;
+import com.example.attendance.model.StudentItem;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -22,50 +23,53 @@ import com.google.firebase.database.ValueEventListener;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ViewAllFacultyActivity extends AppCompatActivity {
+public class ViewStudentSubjectActivity extends AppCompatActivity {
 
 
-    ListView allFacultyList;
-    FacultyListAdapter facultyListAdapter;
-    List<FacultyItem1> facultyItems;
+    ListView allSubjectList;
+    SubjectListAdapter1 subjectListAdapter;
+    List<StudentItem> studentItems;
     DatabaseReference myRef;
     String TAG = "FIREBASE_DATA";
     TextView editEmpty;
+    String studentId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_all_faculty);
+        setContentView(R.layout.activity_view_student_subject);
 
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setTitle("All Faculty");
+            getSupportActionBar().setTitle("All Subjects");
         }
+        Intent intent=getIntent();
+        studentId=intent.getStringExtra("studentId");
 
-        allFacultyList=findViewById(R.id.allFacultyList);
+        allSubjectList=findViewById(R.id.allSubjectList);
         editEmpty=findViewById(R.id.editEmpty);
-        myRef = FirebaseDatabase.getInstance().getReference("FacultyDetails");
-        facultyItems = new ArrayList<>();
+        myRef = FirebaseDatabase.getInstance().getReference("StudentDetails");
+        studentItems = new ArrayList<>();
 
 
 
-        myRef.addValueEventListener(new ValueEventListener() {
+        myRef.child(studentId).child("SubjectDetails").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
-                facultyItems.clear();
+                studentItems.clear();
                 for (DataSnapshot issue : dataSnapshot.getChildren()) {
                     // do something with the individual "issues"
-                    FacultyItem1 details = issue.getValue(FacultyItem1.class);
-                    facultyItems.add(details);
+                    StudentItem details = issue.getValue(StudentItem.class);
+                    studentItems.add(details);
                 }
-                if (facultyItems.size()==0){
+                if (studentItems.size()==0){
                     editEmpty.setVisibility(View.VISIBLE);
                 }
-                facultyListAdapter = new FacultyListAdapter(ViewAllFacultyActivity.this, facultyItems);
-                allFacultyList.setAdapter(facultyListAdapter);
+                subjectListAdapter = new SubjectListAdapter1(ViewStudentSubjectActivity.this, studentItems);
+                allSubjectList.setAdapter(subjectListAdapter);
 
 
             }

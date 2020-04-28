@@ -20,7 +20,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
@@ -28,15 +27,16 @@ import java.util.List;
 
 public class AddStudentActivity extends AppCompatActivity {
     EditText edtStudentName, edtStudentRoll;
-    Spinner spinnerDepartment, spinnerYear, spinnerSemester, spinnerSubject;
-    String studentId, studentName, studentRoll, studentDepartment, studentYear, studentSemester, studentSubject, studentRandomId;
+    Spinner spinnerDepartment, spinnerYear, spinnerSemester;
+    String studentId, studentName, studentRoll, studentDepartment, studentYear, studentSemester, studentRandomId;
     Button btnStudentSubmit;
     DatabaseReference myRef;
-
-    DatabaseReference databaseReferenceSubjects;
-
-    List<String> subjects;
-    String subjectID;
+    DatabaseReference databaseReferenceDepartment;
+    DatabaseReference databaseReferenceYear;
+    DatabaseReference databaseReferenceSemester;
+    List<String> departmentList;
+    List<String> yearsList;
+    List<String> semesterList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,8 +47,6 @@ public class AddStudentActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(true);
             getSupportActionBar().setTitle("Add Student");
         }
-        subjects=new ArrayList<>();
-        subjects.add("Select Subject");
         btnStudentSubmit = (Button) findViewById(R.id.btnStudentSubmit);
         edtStudentName = (EditText) findViewById(R.id.edtStudentName);
         edtStudentRoll = (EditText) findViewById(R.id.edtStudentRoll);
@@ -56,87 +54,119 @@ public class AddStudentActivity extends AppCompatActivity {
         spinnerDepartment = (Spinner) findViewById(R.id.spinnerDepartment);
         spinnerYear = (Spinner) findViewById(R.id.spinnerYear);
         spinnerSemester = (Spinner) findViewById(R.id.spinnerSemester);
-        spinnerSubject = (Spinner) findViewById(R.id.spinnerSubject);
+
+        departmentList = new ArrayList<>();
+        departmentList.add("Select Department");
+
+        yearsList = new ArrayList<>();
+        yearsList.add("Select Year");
+
+        semesterList = new ArrayList<>();
+        semesterList.add("Select Semester");
 
         myRef = FirebaseDatabase.getInstance().getReference("StudentDetails");
-        databaseReferenceSubjects = FirebaseDatabase.getInstance().getReference("SubjectDetails");
-
-        spinnerDepartment.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                studentDepartment = spinnerDepartment.getSelectedItem().toString().trim();
-                getSubjects(studentDepartment,studentYear,studentSemester);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-        spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                studentYear = spinnerYear.getSelectedItem().toString().trim();
-                getSubjects(studentDepartment,studentYear,studentSemester);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-        spinnerSemester.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                studentSemester = spinnerSemester.getSelectedItem().toString().trim();
-                getSubjects(studentDepartment,studentYear,studentSemester);
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> adapterView) {
-
-            }
-        });
-
-        btnStudentSubmit.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                next();
-            }
-        });
-    }
+        databaseReferenceDepartment = FirebaseDatabase.getInstance().getReference("DepartmentDetails");
+        databaseReferenceYear = FirebaseDatabase.getInstance().getReference("YearDetails");
+        databaseReferenceSemester = FirebaseDatabase.getInstance().getReference("SemesterDetails");
 
 
-    public void getSubjects(String studentDepartment, String studentYear, String studentSemester) {
-
-        subjectID = studentDepartment + "_" + studentYear + "_" + studentSemester;
-        Query query = databaseReferenceSubjects.orderByChild("randomId").equalTo(subjectID);
-        query.addValueEventListener(new ValueEventListener() {
+        databaseReferenceDepartment.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                // Is better to use a List, because you don't know the size
-                // of the iterator returned by dataSnapshot.getChildren() to
-                // initialize the array
-
-
-                subjects.clear();
-                subjects.add("Select Subject");
+                departmentList.clear();
+                departmentList.add("Select Department");
 
                 for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
-                    String subject = subjectSnapshot.child("subject").getValue(String.class);
-                    subjects.add(subject);
+                    String department = subjectSnapshot.child("department").getValue(String.class);
+                    departmentList.add(department);
                 }
 
 
-                ArrayAdapter<String> subjectAdapter = new ArrayAdapter<String>(AddStudentActivity.this, android.R.layout.simple_spinner_item, subjects);
-                subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerSubject.setAdapter(subjectAdapter);
+                ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(AddStudentActivity.this, android.R.layout.simple_spinner_item, departmentList);
+                departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerDepartment.setAdapter(departmentAdapter);
 
-
-                spinnerSubject.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                spinnerDepartment.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        studentSubject = spinnerSubject.getSelectedItem().toString().trim();
+                        studentDepartment = spinnerDepartment.getSelectedItem().toString().trim();
+
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
+        databaseReferenceYear.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                yearsList.clear();
+                yearsList.add("Select Year");
+
+                for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
+                    String year = subjectSnapshot.child("year").getValue(String.class);
+                    yearsList.add(year);
+                }
+
+
+                ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(AddStudentActivity.this, android.R.layout.simple_spinner_item, yearsList);
+                yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerYear.setAdapter(yearAdapter);
+
+                spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        studentYear = spinnerYear.getSelectedItem().toString().trim();
+
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+        databaseReferenceSemester.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                semesterList.clear();
+                semesterList.add("Select Semester");
+
+                for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
+                    String semester = subjectSnapshot.child("semester").getValue(String.class);
+                    semesterList.add(semester);
+                }
+
+
+                ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(AddStudentActivity.this, android.R.layout.simple_spinner_item, semesterList);
+                semesterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerSemester.setAdapter(semesterAdapter);
+                spinnerSemester.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        studentSemester = spinnerSemester.getSelectedItem().toString().trim();
+
                     }
 
                     @Override
@@ -151,13 +181,21 @@ public class AddStudentActivity extends AppCompatActivity {
 
             }
         });
+
+        btnStudentSubmit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                next();
+            }
+        });
     }
+
 
     public void next() {
         studentId = myRef.push().getKey();
         studentName = edtStudentName.getText().toString().trim();
         studentRoll = edtStudentRoll.getText().toString().trim();
-        studentRandomId = studentDepartment + "_" + studentYear + "_" + studentSemester + "_" + studentSubject;
+        studentRandomId = studentDepartment + "_" + studentYear + "_" + studentSemester;
 
         if (TextUtils.isEmpty(studentName)) {
             if ((TextUtils.isEmpty(studentRoll)))
@@ -182,16 +220,36 @@ public class AddStudentActivity extends AppCompatActivity {
         if (studentSemester.equals("Select Semester")) {
             Toast.makeText(AddStudentActivity.this, "Please Select Semester", Toast.LENGTH_SHORT).show();
         }
-        if (studentSubject.equals("Select Subject")) {
-            Toast.makeText(AddStudentActivity.this, "Please Select Subject", Toast.LENGTH_SHORT).show();
-        }
 
 
         if (!studentName.isEmpty() && !studentRoll.isEmpty() && !studentDepartment.equals("Select Department") && !studentYear.equals("Select Year") && !studentSemester.equals("Select Semester")) {
 
-            StudentItem student = new StudentItem(studentId, studentName, studentRoll, studentDepartment, studentYear, studentSemester, studentSubject, studentRandomId);
-            myRef.child(studentId).setValue(student);
-            Toast.makeText(AddStudentActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
+
+            myRef.child(studentRoll).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                    if (dataSnapshot.getValue() != null) {
+                        //user exists, do something
+                        Toast.makeText(AddStudentActivity.this, "Already Student Roll Number Exists", Toast.LENGTH_SHORT).show();
+                    } else {
+                        StudentItem student = new StudentItem(studentId, studentName, studentRoll, studentDepartment, studentYear, studentSemester, studentRandomId);
+                        myRef.child(studentId).setValue(student);
+                        Toast.makeText(AddStudentActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
+                        edtStudentName.setText("");
+                        edtStudentRoll.setText("");
+                        spinnerDepartment.setSelection(0);
+                        spinnerYear.setSelection(0);
+                        spinnerSemester.setSelection(0);
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
 
         }
     }

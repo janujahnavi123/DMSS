@@ -2,10 +2,11 @@ package com.example.attendance.model;
 
 import java.io.Serializable;
 
-public class FacultyItem implements Serializable {
+public class FacultyItem1 implements Serializable {
     private String facultyId;
     private String facultyName;
     private String facultyEmail;
+    private String facultyPhone;
     private String facultyPassword;
     private String facultyDept;
     private String facultyYear;
@@ -13,27 +14,46 @@ public class FacultyItem implements Serializable {
     private String facultySubject;
     private String facultyUserID;
     private String facultyRandomID;
+    private String facultySubjectId;
 
 
-    public FacultyItem() {
+    public FacultyItem1() {
 
     }
-
-
-
-    public FacultyItem(String facultyId, String facultyName, String facultyEmail, String facultyPassword, String facultyDept, String facultyYear, String facultySem, String facultySubject, String facultyUserID, String facultyRandomID) {
-        this.facultyId = facultyId;
-        this.facultyName = facultyName;
-        this.facultyEmail = facultyEmail;
-        this.facultyPassword = facultyPassword;
+    public FacultyItem1(String facultyDept, String facultyYear, String facultySem, String facultySubject, String facultyRandomID,String facultySubjectId,String facultyEmail) {
         this.facultyDept = facultyDept;
         this.facultyYear = facultyYear;
         this.facultySem = facultySem;
         this.facultySubject = facultySubject;
-        this.facultyUserID = facultyUserID;
         this.facultyRandomID = facultyRandomID;
+        this.facultySubjectId = facultySubjectId;
+        this.facultyEmail = facultyEmail;
     }
 
+    public FacultyItem1(String facultyId, String facultyName, String facultyEmail, String facultyPhone, String facultyPassword, String facultyUserID) {
+        this.facultyId = facultyId;
+        this.facultyName = facultyName;
+        this.facultyEmail = facultyEmail;
+        this.facultyPhone = facultyPhone;
+        this.facultyPassword = facultyPassword;
+        this.facultyUserID = facultyUserID;
+    }
+
+    public String getFacultySubjectId() {
+        return facultySubjectId;
+    }
+
+    public void setFacultySubjectId(String facultySubjectId) {
+        this.facultySubjectId = facultySubjectId;
+    }
+
+    public String getFacultyPhone() {
+        return facultyPhone;
+    }
+
+    public void setFacultyPhone(String facultyPhone) {
+        this.facultyPhone = facultyPhone;
+    }
 
     public String getFacultyId() {
         return facultyId;

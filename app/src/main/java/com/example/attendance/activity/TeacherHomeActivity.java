@@ -20,7 +20,7 @@ import com.google.firebase.auth.FirebaseAuth;
 public class TeacherHomeActivity extends AppCompatActivity {
     Button takeAttendance, viewAttendance,addSubject;
     MyAppPrefsManager myAppPrefsManager;
-    String email;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -33,8 +33,6 @@ public class TeacherHomeActivity extends AppCompatActivity {
         }
 
         myAppPrefsManager = new MyAppPrefsManager(TeacherHomeActivity.this);
-        Intent intent = getIntent();
-        email = intent.getStringExtra("email");
         takeAttendance = findViewById(R.id.takeAttendance);
         viewAttendance = findViewById(R.id.viewAttendance);
         addSubject = findViewById(R.id.addSubject);
@@ -45,7 +43,6 @@ public class TeacherHomeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent = new Intent(TeacherHomeActivity.this, TakeAttendanceActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                intent.putExtra("email",email);
                 startActivity(intent);
             }
         });
@@ -83,6 +80,7 @@ public class TeacherHomeActivity extends AppCompatActivity {
                 Toast.makeText(this, "Logout Successfully", Toast.LENGTH_SHORT).show();
                 FirebaseAuth.getInstance().signOut();
                 myAppPrefsManager.setTeacherLoggedIn(false);
+                myAppPrefsManager.setUserName(null);
                 ConstantValues.IS_USER_LOGGED_IN_TEACHER = myAppPrefsManager.isTeacherLoggedIn();
                 Intent intent=new Intent(TeacherHomeActivity.this,TeacherLoginActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);

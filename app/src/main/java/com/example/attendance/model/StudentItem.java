@@ -10,14 +10,24 @@ public class StudentItem {
     private String studentSubject;
     private String studentRandomId;
 
-    public StudentItem(String studentId, String studentName, String studentRoll, String studentDepartment, String studentYear, String studentSemester, String studentSubject, String studentRandomId) {
+
+    public StudentItem( String studentDepartment, String studentYear, String studentSemester, String studentSubject, String studentRandomId,String studentId) {
+
+        this.studentDepartment = studentDepartment;
+        this.studentYear = studentYear;
+        this.studentSemester = studentSemester;
+        this.studentSubject = studentSubject;
+        this.studentRandomId = studentRandomId;
+        this.studentId = studentId;
+    }
+
+    public StudentItem(String studentId, String studentName, String studentRoll, String studentDepartment, String studentYear, String studentSemester, String studentRandomId) {
         this.studentId = studentId;
         this.studentName = studentName;
         this.studentRoll = studentRoll;
         this.studentDepartment = studentDepartment;
         this.studentYear = studentYear;
         this.studentSemester = studentSemester;
-        this.studentSubject = studentSubject;
         this.studentRandomId = studentRandomId;
     }
 

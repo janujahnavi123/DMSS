@@ -7,14 +7,16 @@ public class SubjectItem {
     private String semester;
     private String subject;
     private String randomId;
+    private String subjectRandomId;
 
-    public SubjectItem(String subjectId, String department, String year, String semester, String subject, String randomId) {
+    public SubjectItem(String subjectId, String department, String year, String semester, String subject, String randomId,String subjectRandomId) {
         this.subjectId = subjectId;
         this.department = department;
         this.year = year;
         this.semester = semester;
         this.subject = subject;
         this.randomId = randomId;
+        this.subjectRandomId = subjectRandomId;
     }
 
     public SubjectItem() {
@@ -22,6 +24,14 @@ public class SubjectItem {
 
     public String getSubjectId() {
         return subjectId;
+    }
+
+    public String getSubjectRandomId() {
+        return subjectRandomId;
+    }
+
+    public void setSubjectRandomId(String subjectRandomId) {
+        this.subjectRandomId = subjectRandomId;
     }
 
     public void setSubjectId(String subjectId) {

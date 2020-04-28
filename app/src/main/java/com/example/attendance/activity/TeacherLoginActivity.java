@@ -97,10 +97,10 @@ public class TeacherLoginActivity extends AppCompatActivity {
                             Toast.makeText(TeacherLoginActivity.this, "Login Successfully", Toast.LENGTH_SHORT).show();
 
                             myAppPrefsManager.setTeacherLoggedIn(true);
+                            myAppPrefsManager.setUserName(email);
                             ConstantValues.IS_USER_LOGGED_IN_TEACHER = myAppPrefsManager.isTeacherLoggedIn();
                             Intent intent = new Intent(TeacherLoginActivity.this, TeacherHomeActivity.class);
                             intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            intent.putExtra("email",email);
                             startActivity(intent);
 
 

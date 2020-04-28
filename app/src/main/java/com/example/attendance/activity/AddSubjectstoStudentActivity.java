@@ -1,13 +1,12 @@
 package com.example.attendance.activity;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
@@ -15,22 +14,32 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.attendance.R;
-import com.example.attendance.model.SubjectItem;
+import com.example.attendance.model.StudentItem;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AddSubjectsActivity extends AppCompatActivity {
+public class AddSubjectstoStudentActivity extends AppCompatActivity {
 
-    Spinner spinnerDept, spinnerYear, spinnerSemester;
-    String subjectId, department, year, semester, subject, randomId,subjectRandomId;
+
+    Spinner spinnerDept, spinnerYear, spinnerSemester, spinnerSubject;
+    String studentDept, studentYear, studentSem, studentSubject;
+    String studentUserID, studentRandomID;
     Button btnSubmit;
-    EditText editSubject;
+    DatabaseReference databaseReference;
+
+
+    String subjectID;
+    private FirebaseAuth mAuth;
+
+    String TAG = "FIREBASE_DATA";
     DatabaseReference databaseReferenceDepartment;
     DatabaseReference databaseReferenceYear;
     DatabaseReference databaseReferenceSemester;
@@ -39,17 +48,26 @@ public class AddSubjectsActivity extends AppCompatActivity {
     List<String> departmentList;
     List<String> yearsList;
     List<String> semesterList;
+    List<String> subjectList;
+
+    String studentId,studentSubjectId,studentEmail;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_subjects);
+        setContentView(R.layout.activity_add_subjectsto_student);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setTitle("Add Subject");
+            getSupportActionBar().setTitle("Add Subjects to Student");
         }
+        mAuth = FirebaseAuth.getInstance();
+
+        Intent intent = getIntent();
+        studentId = intent.getStringExtra("studentId");
+
+
 
         departmentList = new ArrayList<>();
         departmentList.add("Select Department");
@@ -60,11 +78,18 @@ public class AddSubjectsActivity extends AppCompatActivity {
         semesterList = new ArrayList<>();
         semesterList.add("Select Semester");
 
-        editSubject = findViewById(R.id.editSubject);
+        subjectList = new ArrayList<>();
+        subjectList.add("Select Subject");
+
         spinnerDept = findViewById(R.id.spinnerDept);
         spinnerYear = findViewById(R.id.spinnerYear);
         spinnerSemester = findViewById(R.id.spinnerSemester);
+        spinnerSubject = findViewById(R.id.spinnerSubject);
         btnSubmit = findViewById(R.id.btnSubmit);
+
+
+        databaseReference = FirebaseDatabase.getInstance().getReference("StudentDetails");
+
 
         databaseReferenceDepartment = FirebaseDatabase.getInstance().getReference("DepartmentDetails");
         databaseReferenceYear = FirebaseDatabase.getInstance().getReference("YearDetails");
@@ -83,14 +108,15 @@ public class AddSubjectsActivity extends AppCompatActivity {
                 }
 
 
-                ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(AddSubjectsActivity.this, android.R.layout.simple_spinner_item, departmentList);
+                ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(AddSubjectstoStudentActivity.this, android.R.layout.simple_spinner_item, departmentList);
                 departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerDept.setAdapter(departmentAdapter);
 
                 spinnerDept.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        department = spinnerDept.getSelectedItem().toString().trim();
+                        studentDept = spinnerDept.getSelectedItem().toString().trim();
+                        getSubjects(studentDept, studentYear, studentSem);
                     }
 
                     @Override
@@ -120,14 +146,15 @@ public class AddSubjectsActivity extends AppCompatActivity {
                 }
 
 
-                ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(AddSubjectsActivity.this, android.R.layout.simple_spinner_item, yearsList);
+                ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(AddSubjectstoStudentActivity.this, android.R.layout.simple_spinner_item, yearsList);
                 yearAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerYear.setAdapter(yearAdapter);
 
                 spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        year = spinnerYear.getSelectedItem().toString().trim();
+                        studentYear = spinnerYear.getSelectedItem().toString().trim();
+                        getSubjects(studentDept, studentYear, studentSem);
                     }
 
                     @Override
@@ -158,13 +185,14 @@ public class AddSubjectsActivity extends AppCompatActivity {
                 }
 
 
-                ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(AddSubjectsActivity.this, android.R.layout.simple_spinner_item, semesterList);
+                ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(AddSubjectstoStudentActivity.this, android.R.layout.simple_spinner_item, semesterList);
                 semesterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                 spinnerSemester.setAdapter(semesterAdapter);
                 spinnerSemester.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                     @Override
                     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        semester = spinnerSemester.getSelectedItem().toString().trim();
+                        studentSem = spinnerSemester.getSelectedItem().toString().trim();
+                        getSubjects(studentDept, studentYear, studentSem);
                     }
 
                     @Override
@@ -185,40 +213,104 @@ public class AddSubjectsActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                subjectId = databaseReferenceSubject.push().getKey();
-                subject = editSubject.getText().toString().trim();
-                randomId = department + "_" + year + "_" + semester;
-                subjectRandomId = department + "_" + year + "_" + semester + "_" +subject;
-
-                if (department.equals("Select Department")) {
-                    Toast.makeText(AddSubjectsActivity.this, "Please Select Department", Toast.LENGTH_SHORT).show();
-                }
-                if (year.equals("Select Year")) {
-                    Toast.makeText(AddSubjectsActivity.this, "Please Select Year", Toast.LENGTH_SHORT).show();
-                }
-                if (semester.equals("Select Semester")) {
-                    Toast.makeText(AddSubjectsActivity.this, "Please Select Semester", Toast.LENGTH_SHORT).show();
-                }
-                if (TextUtils.isEmpty(subject)) {
-                    Toast.makeText(AddSubjectsActivity.this, "Please Enter Subject", Toast.LENGTH_SHORT).show();
-                }
-                if (!subject.isEmpty() && !department.equals("Select Department") && !year.equals("Select Year") && !semester.equals("Select Semester")) {
-
-                    SubjectItem subjectItem = new SubjectItem(subjectId, department, year, semester, subject, randomId,subjectRandomId);
-                    databaseReferenceSubject.child(subjectId).setValue(subjectItem);
-                    Toast.makeText(AddSubjectsActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
-                    spinnerDept.setSelection(0);
-                    spinnerYear.setSelection(0);
-                    spinnerSemester.setSelection(0);
-                    editSubject.setText("");
-
-                } else {
-                    Toast.makeText(AddSubjectsActivity.this, "Enter Valid Details...!", Toast.LENGTH_SHORT).show();
-                }
+                next();
 
             }
         });
     }
+
+
+    public void getSubjects(String studentDept, String studentYear, String studentSem) {
+
+        subjectID = studentDept + "_" + studentYear + "_" + studentSem;
+        Query query = databaseReferenceSubject.orderByChild("randomId").equalTo(subjectID);
+        query.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                // Is better to use a List, because you don't know the size
+                // of the iterator returned by dataSnapshot.getChildren() to
+                // initialize the array
+
+
+                subjectList.clear();
+                subjectList.add("Select Subject");
+
+                for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
+                    String subject = subjectSnapshot.child("subject").getValue(String.class);
+                    subjectList.add(subject);
+                }
+
+
+                ArrayAdapter<String> subjectAdapter = new ArrayAdapter<String>(AddSubjectstoStudentActivity.this, android.R.layout.simple_spinner_item, subjectList);
+                subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                spinnerSubject.setAdapter(subjectAdapter);
+
+
+                spinnerSubject.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                    @Override
+                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        studentSubject = spinnerSubject.getSelectedItem().toString().trim();
+                    }
+
+                    @Override
+                    public void onNothingSelected(AdapterView<?> adapterView) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
+    }
+
+    public void next() {
+
+        studentRandomID = studentDept + "_" + studentYear + "_" + studentSem + "_" + studentSubject;
+
+        studentSubjectId=databaseReference.push().getKey();
+        if (studentDept.equals("Select Department")) {
+            Toast.makeText(AddSubjectstoStudentActivity.this, "Please Select Department", Toast.LENGTH_SHORT).show();
+        }
+        if (studentYear.equals("Select Year")) {
+            Toast.makeText(AddSubjectstoStudentActivity.this, "Please Select Year", Toast.LENGTH_SHORT).show();
+        }
+        if (studentSem.equals("Select Semester")) {
+            Toast.makeText(AddSubjectstoStudentActivity.this, "Please Select Semester", Toast.LENGTH_SHORT).show();
+        }
+
+        Query query = databaseReference.orderByChild("studentId").equalTo(studentId);
+        query.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                if (!studentDept.equals("Select Department") && !studentYear.equals("Select Year") && !studentSem.equals("Select Semester")) {
+
+
+                    StudentItem student = new StudentItem(studentDept,studentYear,studentSem,studentSubject,studentRandomID,studentSubjectId);
+                    databaseReference.child(studentId).child("SubjectDetails").child(studentSubjectId).setValue(student);
+                    Toast.makeText(AddSubjectstoStudentActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
+                    spinnerDept.setSelection(0);
+                    spinnerYear.setSelection(0);
+                    spinnerSemester.setSelection(0);
+                    spinnerSubject.setSelection(0);
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+
+    }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -229,4 +321,14 @@ public class AddSubjectsActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
+
+
 }
+
+
+
+
+
+

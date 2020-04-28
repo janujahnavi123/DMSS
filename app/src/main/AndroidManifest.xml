@@ -12,10 +12,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".activity.ViewAttendanceActivity"
-            android:screenOrientation="portrait"/>
-        <activity android:name=".activity.TakeAttendanceActivity"
-            android:screenOrientation="portrait"/>
+        <activity android:name=".activity.AddSubjectstoTeacherActivity"></activity>
+        <activity
+            android:name=".activity.ViewAttendanceActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.TakeAttendanceActivity"
+            android:screenOrientation="portrait" />
         <activity
             android:name=".activity.AddSubjectsActivity"
             android:screenOrientation="portrait" />
@@ -27,6 +30,15 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.TeacherHomeActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.ViewTeacherSubjectActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.AddSubjectstoStudentActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.ViewStudentSubjectActivity"
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.SplashScreenActivity"
@@ -42,6 +54,9 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.AddFacultyActivity"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".activity.AddFacultyActivity1"
             android:screenOrientation="portrait" />
         <activity
             android:name=".activity.HomeActivity"

@@ -1,6 +1,5 @@
 package com.example.attendance.activity;
 
-import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
 import android.view.View;
@@ -18,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.attendance.R;
 import com.example.attendance.adapter.FacultyAttendanceAdapter;
 import com.example.attendance.model.StudentItem;
+import com.example.attendance.utils.MyAppPrefsManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -29,6 +29,7 @@ import com.google.firebase.database.ValueEventListener;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 
@@ -40,7 +41,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
     String facultyUserID, facultyRandomID;
     Button btnSubmit;
     DatabaseReference databaseReference;
-    DatabaseReference databaseReferenceSubjects;
+
     DatabaseReference databaseReferenceStudents;
 
     List<String> departments;
@@ -55,8 +56,10 @@ public class TakeAttendanceActivity extends AppCompatActivity {
     ListView studentList;
     String email;
 
+    MyAppPrefsManager myAppPrefsManager;
     FacultyAttendanceAdapter facultyAttendanceAdapter;
     List<StudentItem> studentItemList;
+    String facultyId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,23 +71,17 @@ public class TakeAttendanceActivity extends AppCompatActivity {
             getSupportActionBar().setTitle("Add Faculty");
         }
 
-        Intent intent = getIntent();
-        email = intent.getStringExtra("email");
-        Toast.makeText(this, ""+email, Toast.LENGTH_SHORT).show();
+        myAppPrefsManager = new MyAppPrefsManager(TakeAttendanceActivity.this);
+
+        email = myAppPrefsManager.getUserName();
+
 
         mAuth = FirebaseAuth.getInstance();
 
         departments = new ArrayList<>();
-        departments.add("Select Department");
-
         years = new ArrayList<>();
-        years.add("Select Year");
-
         semesters = new ArrayList<>();
-        semesters.add("Select Semester");
-
         subjects = new ArrayList<>();
-        subjects.add("Select Subject");
 
         studentItemList = new ArrayList<>();
         studentList = (ListView) findViewById(R.id.studentList);
@@ -98,11 +95,11 @@ public class TakeAttendanceActivity extends AppCompatActivity {
 
         databaseReference = FirebaseDatabase.getInstance().getReference("FacultyDetails");
         databaseReferenceStudents = FirebaseDatabase.getInstance().getReference("StudentDetails");
-        databaseReferenceSubjects = FirebaseDatabase.getInstance().getReference("SubjectDetails");
+
         date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
 
 
-        getDepartment();
+        getDepartment(email);
 
         btnSubmit.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -113,95 +110,151 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         });
     }
 
-    public void getDepartment() {
+    public void getDepartment(String email) {
+
+        Toast.makeText(this, "" + email, Toast.LENGTH_SHORT).show();
 
         Query query = databaseReference.orderByChild("facultyEmail").equalTo(email);
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                // Is better to use a List, because you don't know the size
-                // of the iterator returned by dataSnapshot.getChildren() to
-                // initialize the array
+
+                if (dataSnapshot.exists()) {
+                    for (DataSnapshot issue : dataSnapshot.getChildren()) {
+                        // do something with the individual "issues"
+                        facultyId = issue.child("facultyId").getValue(String.class);
+
+                    }
+
+                    assert facultyId != null;
+                    databaseReference.child(facultyId).child("SubjectDetails").addValueEventListener(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                            // Is better to use a List, because you don't know the size
+                            // of the iterator returned by dataSnapshot.getChildren() to
+                            // initialize the array
 
 
-                departments.clear();
-                departments.add("Select Department");
-
-                years.clear();
-                years.add("Select Year");
-
-                semesters.clear();
-                semesters.add("Select Semester");
+                            departments.clear();
 
 
-                for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
-                    String department = subjectSnapshot.child("facultyDept").getValue(String.class);
-                    String year = subjectSnapshot.child("facultyYear").getValue(String.class);
-                    String semester = subjectSnapshot.child("facultySem").getValue(String.class);
-                    departments.add(department);
-                    years.add(year);
-                    semesters.add(semester);
+                            years.clear();
+
+
+                            semesters.clear();
+
+
+                            for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
+                                String department = subjectSnapshot.child("facultyDept").getValue(String.class);
+                                String year = subjectSnapshot.child("facultyYear").getValue(String.class);
+                                String semester = subjectSnapshot.child("facultySem").getValue(String.class);
+                                String subject = subjectSnapshot.child("facultySubject").getValue(String.class);
+                                departments.add(department);
+                                years.add(year);
+                                semesters.add(semester);
+                                subjects.add(subject);
+
+                                HashSet<String> hashSet = new HashSet<String>(departments);
+                                departments.clear();
+                                departments.addAll(hashSet);
+
+                                HashSet<String> hashSet1 = new HashSet<String>(years);
+                                years.clear();
+                                years.addAll(hashSet1);
+
+                                HashSet<String> hashSet2 = new HashSet<String>(semesters);
+                                semesters.clear();
+                                semesters.addAll(hashSet2);
+
+                                HashSet<String> hashSet3 = new HashSet<String>(subjects);
+                                subjects.clear();
+                                subjects.addAll(hashSet3);
+                            }
+
+
+                            ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, departments);
+                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerDept.setAdapter(departmentAdapter);
+
+
+                            spinnerDept.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                    facultyDept = spinnerDept.getSelectedItem().toString().trim();
+
+                                    next(facultyDept, facultyYear, facultySem, facultySubject);
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                                }
+                            });
+
+
+                            ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, years);
+                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerYear.setAdapter(yearAdapter);
+
+
+                            spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                    facultyYear = spinnerYear.getSelectedItem().toString().trim();
+                                    next(facultyDept, facultyYear, facultySem, facultySubject);
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                                }
+                            });
+
+
+                            ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, semesters);
+                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerSemester.setAdapter(semesterAdapter);
+
+
+                            spinnerSemester.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                    facultySem = spinnerSemester.getSelectedItem().toString().trim();
+                                    next(facultyDept, facultyYear, facultySem, facultySubject);
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                                }
+                            });
+
+                            ArrayAdapter<String> subjectAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, subjects);
+                            subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerSubject.setAdapter(subjectAdapter);
+
+
+                            spinnerSubject.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                @Override
+                                public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                                    facultySubject = spinnerSubject.getSelectedItem().toString().trim();
+                                    next(facultyDept, facultyYear, facultySem, facultySubject);
+                                }
+
+                                @Override
+                                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
+
                 }
-
-
-                ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, departments);
-                departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerDept.setAdapter(departmentAdapter);
-
-
-                spinnerDept.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        facultyDept = spinnerDept.getSelectedItem().toString().trim();
-                        getSubjects(facultyDept,facultyYear,facultySem);
-                        next(facultyDept, facultyYear, facultySem, facultySubject);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-
-                    }
-                });
-
-
-                ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, years);
-                departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerYear.setAdapter(yearAdapter);
-
-
-                spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        facultyYear = spinnerYear.getSelectedItem().toString().trim();
-                        getSubjects(facultyDept,facultyYear,facultySem);
-                        next(facultyDept, facultyYear, facultySem, facultySubject);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-
-                    }
-                });
-
-
-                ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, semesters);
-                departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerSemester.setAdapter(semesterAdapter);
-
-
-                spinnerSemester.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        facultySem = spinnerSemester.getSelectedItem().toString().trim();
-                        getSubjects(facultyDept,facultyYear,facultySem);
-                        next(facultyDept, facultyYear, facultySem, facultySubject);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-
-                    }
-                });
             }
 
             @Override
@@ -212,108 +265,48 @@ public class TakeAttendanceActivity extends AppCompatActivity {
 
     }
 
-    public void getSubjects(final String facultyDept, final String facultyYear, final String facultySem) {
-
-        subjectID = facultyDept + "_" + facultyYear + "_" + facultySem;
-        Query query = databaseReferenceSubjects.orderByChild("randomId").equalTo(subjectID);
-        query.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                // Is better to use a List, because you don't know the size
-                // of the iterator returned by dataSnapshot.getChildren() to
-                // initialize the array
-
-
-                subjects.clear();
-                subjects.add("Select Subject");
-
-                for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
-                    String subject = subjectSnapshot.child("subject").getValue(String.class);
-                    subjects.add(subject);
-                }
-
-
-                ArrayAdapter<String> subjectAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, subjects);
-                subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                spinnerSubject.setAdapter(subjectAdapter);
-
-
-                spinnerSubject.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                        facultySubject = spinnerSubject.getSelectedItem().toString().trim();
-                        next(facultyDept, facultyYear, facultySem, facultySubject);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> adapterView) {
-
-                    }
-                });
-            }
-
-            @Override
-            public void onCancelled(@NonNull DatabaseError databaseError) {
-
-            }
-        });
-    }
 
     public void next(String facultyDept, String facultyYear, String facultySem, String facultySubject) {
 
         facultyRandomID = facultyDept + "_" + facultyYear + "_" + facultySem + "_" + facultySubject;
         Toast.makeText(this, "" + facultyRandomID, Toast.LENGTH_SHORT).show();
-        databaseReference.addValueEventListener(new ValueEventListener() {
+
+
+        databaseReferenceStudents.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                studentItemList.clear();
+                if (dataSnapshot.exists()) {
 
-                for (DataSnapshot areaSnapshot : dataSnapshot.getChildren()) {
-                    facultyRandomID = areaSnapshot.child("facultyRandomID").getValue(String.class);
+                    for (DataSnapshot issue : dataSnapshot.getChildren()) {
+                        // do something with the individual "issues"
+                        String stgUserHomeName = issue.getKey();
+                        Toast.makeText(TakeAttendanceActivity.this, ""+stgUserHomeName, Toast.LENGTH_SHORT).show();
+                        StudentItem details  = issue.getValue(StudentItem.class);
+                        studentItemList.add(details);
+                    }
+                    if (studentItemList.size() == 0) {
+                        editEmpty.setVisibility(View.VISIBLE);
+                    } else {
+                        editEmpty.setVisibility(View.GONE);
+                    }
+
+                    facultyAttendanceAdapter = new FacultyAttendanceAdapter(TakeAttendanceActivity.this, studentItemList);
+                    studentList.setAdapter(facultyAttendanceAdapter);
+
+                } else {
+                    editEmpty.setVisibility(View.VISIBLE);
                 }
-
-                Query query = databaseReferenceStudents.orderByChild("studentRandomId").equalTo(facultyRandomID);
-                query.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-                        studentItemList.clear();
-                        if (dataSnapshot.exists()) {
-
-                            for (DataSnapshot issue : dataSnapshot.getChildren()) {
-                                // do something with the individual "issues"
-                                StudentItem details = issue.getValue(StudentItem.class);
-                                studentItemList.add(details);
-                            }
-                            if (studentItemList.size() == 0) {
-                                editEmpty.setVisibility(View.VISIBLE);
-                            }
-
-                            facultyAttendanceAdapter = new FacultyAttendanceAdapter(TakeAttendanceActivity.this, studentItemList);
-                            studentList.setAdapter(facultyAttendanceAdapter);
-
-                        } else {
-                            editEmpty.setVisibility(View.VISIBLE);
-                        }
-
-
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError error) {
-                        // Failed to read value
-
-                    }
-                });
-
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
-                // Failed to read value
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
         });
+
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {

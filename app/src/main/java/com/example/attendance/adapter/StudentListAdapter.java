@@ -2,17 +2,19 @@ package com.example.attendance.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
-
 import com.example.attendance.R;
+import com.example.attendance.activity.AddSubjectstoStudentActivity;
+import com.example.attendance.activity.ViewStudentSubjectActivity;
 import com.example.attendance.model.StudentItem;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class StudentListAdapter extends BaseAdapter {
@@ -55,6 +57,8 @@ public class StudentListAdapter extends BaseAdapter {
         TextView txtYear=(TextView)convertView.findViewById(R.id.txtYear);
         TextView txtRoll =(TextView)convertView.findViewById(R.id.txtRoll);
         TextView txtDept =(TextView)convertView.findViewById(R.id.txtBranch);
+        Button btnAdd=(Button) convertView.findViewById(R.id.btnAdd);
+        Button btnView=(Button) convertView.findViewById(R.id.btnView);
 
         StudentItem studentItem=studentItemList.get(position);
 
@@ -63,6 +67,28 @@ public class StudentListAdapter extends BaseAdapter {
         txtYear.setText("Year : "+studentItem.getStudentYear()+" "+"  Semester : "+studentItem.getStudentSemester());
         txtRoll.setText("Number : "+studentItem.getStudentRoll());
         txtDept.setText("Department : "+studentItem.getStudentDepartment());
+
+        btnAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, AddSubjectstoStudentActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("studentId",studentItem.getStudentId());
+                intent.putExtra("studentRoll",studentItem.getStudentRoll());
+                context.startActivity(intent);
+            }
+        });
+
+        btnView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(context, ViewStudentSubjectActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                intent.putExtra("studentId",studentItem.getStudentId());
+                context.startActivity(intent);
+            }
+        });
+
 
 
 

@@ -41,11 +41,12 @@ public class AdminHomeActivity extends AppCompatActivity {
         addTeacher.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(AdminHomeActivity.this, AddFacultyActivity.class);
+                Intent intent = new Intent(AdminHomeActivity.this, AddFacultyActivity1.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 startActivity(intent);
             }
         });
+
         viewTeacher.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
