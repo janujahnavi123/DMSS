@@ -12,7 +12,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.attendance.R;
 import com.example.attendance.adapter.FacultyListAdapter;
-import com.example.attendance.model.FacultyItem1;
+import com.example.attendance.model.FacultyItem;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,7 +27,7 @@ public class ViewAllFacultyActivity extends AppCompatActivity {
 
     ListView allFacultyList;
     FacultyListAdapter facultyListAdapter;
-    List<FacultyItem1> facultyItems;
+    List<FacultyItem> facultyItems;
     DatabaseReference myRef;
     String TAG = "FIREBASE_DATA";
     TextView editEmpty;
@@ -58,7 +58,7 @@ public class ViewAllFacultyActivity extends AppCompatActivity {
                 facultyItems.clear();
                 for (DataSnapshot issue : dataSnapshot.getChildren()) {
                     // do something with the individual "issues"
-                    FacultyItem1 details = issue.getValue(FacultyItem1.class);
+                    FacultyItem details = issue.getValue(FacultyItem.class);
                     facultyItems.add(details);
                 }
                 if (facultyItems.size()==0){

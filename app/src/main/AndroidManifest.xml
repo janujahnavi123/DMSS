@@ -53,9 +53,6 @@
             android:name=".activity.AdminLoginActivity"
             android:screenOrientation="portrait" />
         <activity
-            android:name=".activity.AddFacultyActivity"
-            android:screenOrientation="portrait" />
-        <activity
             android:name=".activity.AddFacultyActivity1"
             android:screenOrientation="portrait" />
         <activity

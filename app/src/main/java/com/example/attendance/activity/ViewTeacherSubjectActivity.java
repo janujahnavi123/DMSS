@@ -12,8 +12,8 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.attendance.R;
-import com.example.attendance.adapter.SubjectListAdapter;
-import com.example.attendance.model.FacultyItem1;
+import com.example.attendance.adapter.FacultySubjectListAdapter;
+import com.example.attendance.model.FacultyItemSubjects;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -27,8 +27,8 @@ public class ViewTeacherSubjectActivity extends AppCompatActivity {
 
 
     ListView allSubjectList;
-    SubjectListAdapter subjectListAdapter;
-    List<FacultyItem1> facultyItems;
+    FacultySubjectListAdapter facultySubjectListAdapter;
+    List<FacultyItemSubjects> facultyItems;
     DatabaseReference myRef;
     String TAG = "FIREBASE_DATA";
     TextView editEmpty;
@@ -62,14 +62,14 @@ public class ViewTeacherSubjectActivity extends AppCompatActivity {
                 facultyItems.clear();
                 for (DataSnapshot issue : dataSnapshot.getChildren()) {
                     // do something with the individual "issues"
-                    FacultyItem1 details = issue.getValue(FacultyItem1.class);
+                    FacultyItemSubjects details = issue.getValue(FacultyItemSubjects.class);
                     facultyItems.add(details);
                 }
                 if (facultyItems.size()==0){
                     editEmpty.setVisibility(View.VISIBLE);
                 }
-                subjectListAdapter = new SubjectListAdapter(ViewTeacherSubjectActivity.this, facultyItems);
-                allSubjectList.setAdapter(subjectListAdapter);
+                facultySubjectListAdapter = new FacultySubjectListAdapter(ViewTeacherSubjectActivity.this, facultyItems);
+                allSubjectList.setAdapter(facultySubjectListAdapter);
 
 
             }

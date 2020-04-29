@@ -12,7 +12,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.attendance.R;
-import com.example.attendance.model.FacultyItem1;
+import com.example.attendance.model.FacultyItem;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
@@ -101,7 +101,7 @@ public class AddFacultyActivity1 extends AppCompatActivity {
                                 Log.d(TAG, "createUserWithEmail:success");
                                 FirebaseUser user = mAuth.getCurrentUser();
                                 Log.d(TAG, "createUserWithEmail:success" + user);
-                                FacultyItem1 faculty = new FacultyItem1(facultyId, facultyName, facultyEmail,facultyPhone ,facultyPassword, facultyUserID);
+                                FacultyItem faculty = new FacultyItem(facultyId, facultyName, facultyEmail,facultyPhone ,facultyPassword, facultyUserID);
                                 databaseReference.child(facultyId).setValue(faculty);
                                 Toast.makeText(AddFacultyActivity1.this, "Added Successfully", Toast.LENGTH_SHORT).show();
                                 editName.setText("");

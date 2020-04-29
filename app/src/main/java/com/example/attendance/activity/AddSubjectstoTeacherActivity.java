@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.attendance.R;
-import com.example.attendance.model.FacultyItem1;
+import com.example.attendance.model.FacultyItemSubjects;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -291,7 +291,7 @@ public class AddSubjectstoTeacherActivity extends AppCompatActivity {
                 if (!facultyDept.equals("Select Department") && !facultyYear.equals("Select Year") && !facultySem.equals("Select Semester")) {
 
 
-                    FacultyItem1 faculty = new FacultyItem1(facultyDept,facultyYear,facultySem,facultySubject,facultyRandomID,facultySubjectId,facultyEmail);
+                    FacultyItemSubjects faculty = new FacultyItemSubjects(facultyDept,facultyYear,facultySem,facultySubject,facultyRandomID,facultySubjectId,facultyEmail);
                     databaseReference.child(facultyId).child("SubjectDetails").child(facultySubjectId).setValue(faculty);
                     Toast.makeText(AddSubjectstoTeacherActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
                     spinnerDept.setSelection(0);

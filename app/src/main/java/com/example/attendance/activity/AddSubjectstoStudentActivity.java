@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.attendance.R;
-import com.example.attendance.model.StudentItem;
+import com.example.attendance.model.StudentItemSubjects;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -50,7 +50,7 @@ public class AddSubjectstoStudentActivity extends AppCompatActivity {
     List<String> semesterList;
     List<String> subjectList;
 
-    String studentId,studentSubjectId,studentEmail;
+    String studentId,studentSubjectId,studentName,studentRoll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +66,8 @@ public class AddSubjectstoStudentActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         studentId = intent.getStringExtra("studentId");
+        studentName = intent.getStringExtra("studentName");
+        studentRoll = intent.getStringExtra("studentRoll");
 
 
 
@@ -291,7 +293,7 @@ public class AddSubjectstoStudentActivity extends AppCompatActivity {
                 if (!studentDept.equals("Select Department") && !studentYear.equals("Select Year") && !studentSem.equals("Select Semester")) {
 
 
-                    StudentItem student = new StudentItem(studentDept,studentYear,studentSem,studentSubject,studentRandomID,studentSubjectId);
+                    StudentItemSubjects student = new StudentItemSubjects(studentId,studentName,studentRoll,studentDept,studentYear,studentSem,studentSubject,studentRandomID,studentSubjectId);
                     databaseReference.child(studentId).child("SubjectDetails").child(studentSubjectId).setValue(student);
                     Toast.makeText(AddSubjectstoStudentActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
                     spinnerDept.setSelection(0);

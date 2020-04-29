@@ -54,9 +54,8 @@ public class StudentListAdapter extends BaseAdapter {
 
 
         TextView txtName =(TextView)convertView.findViewById(R.id.txtName);
-        TextView txtYear=(TextView)convertView.findViewById(R.id.txtYear);
         TextView txtRoll =(TextView)convertView.findViewById(R.id.txtRoll);
-        TextView txtDept =(TextView)convertView.findViewById(R.id.txtBranch);
+
         Button btnAdd=(Button) convertView.findViewById(R.id.btnAdd);
         Button btnView=(Button) convertView.findViewById(R.id.btnView);
 
@@ -64,9 +63,7 @@ public class StudentListAdapter extends BaseAdapter {
 
 
         txtName.setText("Name : "+studentItem.getStudentName());
-        txtYear.setText("Year : "+studentItem.getStudentYear()+" "+"  Semester : "+studentItem.getStudentSemester());
         txtRoll.setText("Number : "+studentItem.getStudentRoll());
-        txtDept.setText("Department : "+studentItem.getStudentDepartment());
 
         btnAdd.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -75,6 +72,7 @@ public class StudentListAdapter extends BaseAdapter {
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 intent.putExtra("studentId",studentItem.getStudentId());
                 intent.putExtra("studentRoll",studentItem.getStudentRoll());
+                intent.putExtra("studentName",studentItem.getStudentName());
                 context.startActivity(intent);
             }
         });

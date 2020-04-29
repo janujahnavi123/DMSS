@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.attendance.R;
 import com.example.attendance.adapter.FacultyAttendanceAdapter;
 import com.example.attendance.model.StudentItem;
+import com.example.attendance.model.StudentItemSubjects;
 import com.example.attendance.utils.MyAppPrefsManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -58,8 +59,11 @@ public class TakeAttendanceActivity extends AppCompatActivity {
 
     MyAppPrefsManager myAppPrefsManager;
     FacultyAttendanceAdapter facultyAttendanceAdapter;
-    List<StudentItem> studentItemList;
+    List<StudentItemSubjects> studentItemList;
+    List<StudentItem> studentItem;
     String facultyId;
+    StudentItem details;
+    Query query;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +88,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         subjects = new ArrayList<>();
 
         studentItemList = new ArrayList<>();
+        studentItem = new ArrayList<>();
         studentList = (ListView) findViewById(R.id.studentList);
 
         editEmpty = findViewById(R.id.editEmpty);
@@ -275,15 +280,77 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         databaseReferenceStudents.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                studentItem.clear();
+                for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
+
+                    //String studentId=(String) dataSnapshot1.getKey();
+                    details = dataSnapshot1.getValue(StudentItem.class);
+                    studentItem.add(details);
+
+
+                }
+                query = databaseReferenceStudents.child(studentItem.get(0).getStudentId()).child("SubjectDetails").orderByChild("studentRandomId").equalTo(facultyRandomID);
+
+                query.addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                        studentItemList.clear();
+                        if (dataSnapshot.exists()) {
+
+                            for (DataSnapshot issue : dataSnapshot.getChildren()) {
+                                // do something with the individual "issues"
+                                StudentItemSubjects details = issue.getValue(StudentItemSubjects.class);
+
+                                studentItemList.add(details);
+
+                            }
+                            if (studentItemList.size() == 0) {
+                                editEmpty.setVisibility(View.VISIBLE);
+                            } else {
+                                editEmpty.setVisibility(View.GONE);
+                            }
+
+                            facultyAttendanceAdapter = new FacultyAttendanceAdapter(TakeAttendanceActivity.this, studentItemList);
+                            studentList.setAdapter(facultyAttendanceAdapter);
+
+                        } else {
+                            editEmpty.setVisibility(View.VISIBLE);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                    }
+                });
+
+
+            }
+
+
+
+
+        @Override
+        public void onCancelled (@NonNull DatabaseError databaseError){
+
+        }
+    });
+
+
+        /*databaseReferenceStudents.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
                 studentItemList.clear();
                 if (dataSnapshot.exists()) {
 
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         // do something with the individual "issues"
-                        String stgUserHomeName = issue.getKey();
-                        Toast.makeText(TakeAttendanceActivity.this, ""+stgUserHomeName, Toast.LENGTH_SHORT).show();
-                        StudentItem details  = issue.getValue(StudentItem.class);
+                        StudentItemSubjects details = issue.getValue(StudentItemSubjects.class);
+
                         studentItemList.add(details);
+
                     }
                     if (studentItemList.size() == 0) {
                         editEmpty.setVisibility(View.VISIBLE);
@@ -303,9 +370,10 @@ public class TakeAttendanceActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });
+        });*/
 
-    }
+
+}
 
 
     @Override

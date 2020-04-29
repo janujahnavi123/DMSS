@@ -11,7 +11,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.example.attendance.R;
-import com.example.attendance.model.StudentItem;
+import com.example.attendance.model.StudentItemSubjects;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -24,7 +24,7 @@ import java.util.Locale;
 
 public class FacultyAttendanceAdapter extends BaseAdapter {
 
-    private List<StudentItem> studentItemList;
+    private List<StudentItemSubjects> studentItemList;
     private Context context;
     private RadioButton radioButton;
     private DatabaseReference myRef;
@@ -32,7 +32,7 @@ public class FacultyAttendanceAdapter extends BaseAdapter {
 
 
 
-    public FacultyAttendanceAdapter(Context context, List<StudentItem> studentItemList) {
+    public FacultyAttendanceAdapter(Context context, List<StudentItemSubjects> studentItemList) {
         this.studentItemList = studentItemList;
         this.context = context;
 
@@ -87,8 +87,8 @@ public class FacultyAttendanceAdapter extends BaseAdapter {
            }
        });
 
-        txtName.setText("Name : "+studentItemList.get(position).getStudentSubject());
-        txtRoll.setText("Number : "+studentItemList.get(position).getStudentSubject());
+        txtName.setText("Name : "+studentItemList.get(position).getStudentName());
+        txtRoll.setText("Number : "+studentItemList.get(position).getStudentRoll());
 
 
 

@@ -13,16 +13,16 @@ import android.widget.TextView;
 import com.example.attendance.R;
 import com.example.attendance.activity.AddSubjectstoTeacherActivity;
 import com.example.attendance.activity.ViewTeacherSubjectActivity;
-import com.example.attendance.model.FacultyItem1;
+import com.example.attendance.model.FacultyItem;
 
 import java.util.List;
 
 public class FacultyListAdapter extends BaseAdapter {
 
-    private List<FacultyItem1> facultyItems;
+    private List<FacultyItem> facultyItems;
     private Context context;
 
-    public FacultyListAdapter(Context context, List<FacultyItem1> facultyItems) {
+    public FacultyListAdapter(Context context, List<FacultyItem> facultyItems) {
         this.facultyItems = facultyItems;
         this.context = context;
     }

@@ -9,28 +9,28 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import com.example.attendance.R;
-import com.example.attendance.model.FacultyItem1;
+import com.example.attendance.model.StudentItemSubjects;
 
 import java.util.List;
 
-public class SubjectListAdapter extends BaseAdapter {
+public class StudentSubjectListAdapter extends BaseAdapter {
 
-    private List<FacultyItem1> facultyItems;
+    private List<StudentItemSubjects> studentItemList;
     private Context context;
 
-    public SubjectListAdapter(Context context, List<FacultyItem1> facultyItems) {
-        this.facultyItems = facultyItems;
+    public StudentSubjectListAdapter(Context context, List<StudentItemSubjects> studentItemList) {
+        this.studentItemList = studentItemList;
         this.context = context;
     }
 
     @Override
     public int getCount() {
-        return facultyItems.size();
+        return studentItemList.size();
     }
 
     @Override
     public Object getItem(int position) {
-        return facultyItems.get(position);
+        return studentItemList.get(position);
     }
 
     @Override
@@ -52,10 +52,10 @@ public class SubjectListAdapter extends BaseAdapter {
         TextView txtSemester=(TextView)convertView.findViewById(R.id.txtSemester);
         TextView txtSubject=(TextView)convertView.findViewById(R.id.txtSubject);
 
-        txtBranch.setText("Branch : "+facultyItems.get(position).getFacultyDept());
-        txtYear.setText("Year : "+facultyItems.get(position).getFacultyYear());
-        txtSemester.setText("Semester : "+facultyItems.get(position).getFacultySem());
-        txtSubject.setText("Subject : "+facultyItems.get(position).getFacultySubject());
+        txtBranch.setText("Branch : "+studentItemList.get(position).getStudentDepartment());
+        txtYear.setText("Year : "+studentItemList.get(position).getStudentYear());
+        txtSemester.setText("Semester : "+studentItemList.get(position).getStudentSemester());
+        txtSubject.setText("Subject : "+studentItemList.get(position).getStudentSubject());
 
 
 
