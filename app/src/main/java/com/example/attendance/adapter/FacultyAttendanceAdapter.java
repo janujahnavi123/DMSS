@@ -7,37 +7,30 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import com.example.attendance.R;
-import com.example.attendance.model.StudentItemSubjects;
+import com.example.attendance.model.StudentdataItem;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-
+import java.util.ArrayList;
 
 
 public class FacultyAttendanceAdapter extends BaseAdapter {
 
-    private List<StudentItemSubjects> studentItemList;
+    //private List<StudentItemSubjects> studentItemList;
     private Context context;
     private RadioButton radioButton;
     private DatabaseReference myRef;
-    private String status,id,date,name,number;
+    private String status, id, date, name, number;
 
+    private ArrayList<StudentdataItem> studentItemList;
 
-
-    public FacultyAttendanceAdapter(Context context, List<StudentItemSubjects> studentItemList) {
+    public FacultyAttendanceAdapter(Context context, ArrayList<StudentdataItem> studentItemList) {
         this.studentItemList = studentItemList;
         this.context = context;
 
     }
-
 
 
     @Override
@@ -61,36 +54,38 @@ public class FacultyAttendanceAdapter extends BaseAdapter {
 
         if (convertView == null) {
 
-            convertView = LayoutInflater.from(context).inflate(R.layout.faculty_item_attendance, parent, false);
+            convertView = LayoutInflater.from(context).inflate(R.layout.faculty_item_attendance1, parent, false);
         }
-        FirebaseDatabase database = FirebaseDatabase.getInstance();
-        myRef = database.getReference("Attendance");
-
-        TextView txtName =(TextView)convertView.findViewById(R.id.txtName);
-        TextView txtRoll =(TextView)convertView.findViewById(R.id.txtRollNo);
-        RadioGroup radioGroup = (RadioGroup) convertView.findViewById(R.id.radioGroup);
-
-        final View finalConvertView = convertView;
-        radioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
-           @Override
-           public void onCheckedChanged(RadioGroup radioGroup, int i) {
-               int selectedId = radioGroup.getCheckedRadioButtonId();
-               // find the radiobutton by returned id
-               radioButton = (RadioButton) finalConvertView.findViewById(selectedId);
-               status=radioButton.getText().toString().trim();
-               id = myRef.push().getKey();
-               date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
-               name=studentItemList.get(position).getStudentName();
-               number=studentItemList.get(position).getStudentRoll();
-               /*AttendanceModel student = new AttendanceModel(id, date,name,number,status);
-               myRef.child(id).setValue(student);*/
-           }
-       });
-
-        txtName.setText("Name : "+studentItemList.get(position).getStudentName());
-        txtRoll.setText("Number : "+studentItemList.get(position).getStudentRoll());
 
 
+        TextView txtName = (TextView) convertView.findViewById(R.id.txtName);
+        TextView txtNameAbsent = (TextView) convertView.findViewById(R.id.txtNameAbsent);
+        TextView txtRoll = (TextView) convertView.findViewById(R.id.txtRollNo);
+        TextView txtRollAbsent = (TextView) convertView.findViewById(R.id.txtRollnoAbsent);
+        TextView txtPresentCount = (TextView) convertView.findViewById(R.id.presentCount);
+        TextView txtAbsentCount = (TextView) convertView.findViewById(R.id.absentCount);
+
+        String listPresentNames = studentItemList.get(position).getNamesListPresent();
+        listPresentNames = listPresentNames.replace(",", "\n");
+
+        String listAbsentNames = studentItemList.get(position).getNamesListAbsent();
+        listAbsentNames = listAbsentNames.replace(",", "\n");
+
+
+        String listPresentNumbers = studentItemList.get(position).getNumListPresent();
+        listPresentNumbers = listPresentNumbers.replace(",", "\n");
+
+        String listAbsentNumbers = studentItemList.get(position).getNumListAbsent();
+        listAbsentNumbers = listAbsentNumbers.replace(",", "\n");
+
+        txtName.setText(listPresentNames);
+        txtRoll.setText(listPresentNumbers);
+
+        txtNameAbsent.setText(listAbsentNames);
+        txtRollAbsent.setText(listAbsentNumbers);
+
+        txtPresentCount.setText("Present Count : "+studentItemList.get(position).getNamesListPresentCount());
+        txtAbsentCount.setText("Absent Count : "+studentItemList.get(position).getNamesListAbsentCount());
 
         return convertView;
     }

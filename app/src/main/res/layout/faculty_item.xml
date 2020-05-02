@@ -54,6 +54,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="add"
+        android:textColor="#FFFFFF"
+        android:background="#512DA8"
         android:layout_margin="2dp"
         android:layout_gravity="center" />
 
@@ -62,6 +64,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="View"
+        android:textColor="#FFFFFF"
+        android:background="#56A85A"
         android:layout_margin="2dp"
         android:layout_gravity="center" />
     </LinearLayout>

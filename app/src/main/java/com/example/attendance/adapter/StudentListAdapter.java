@@ -83,6 +83,8 @@ public class StudentListAdapter extends BaseAdapter {
                 Intent intent = new Intent(context, ViewStudentSubjectActivity.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_CLEAR_TOP);
                 intent.putExtra("studentId",studentItem.getStudentId());
+                intent.putExtra("studentRoll",studentItem.getStudentRoll());
+                intent.putExtra("studentName",studentItem.getStudentName());
                 context.startActivity(intent);
             }
         });

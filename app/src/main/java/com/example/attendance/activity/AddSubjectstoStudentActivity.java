@@ -44,6 +44,7 @@ public class AddSubjectstoStudentActivity extends AppCompatActivity {
     DatabaseReference databaseReferenceYear;
     DatabaseReference databaseReferenceSemester;
     DatabaseReference databaseReferenceSubject;
+    DatabaseReference databaseReferenceStudentSubjects;
 
     List<String> departmentList;
     List<String> yearsList;
@@ -91,6 +92,7 @@ public class AddSubjectstoStudentActivity extends AppCompatActivity {
 
 
         databaseReference = FirebaseDatabase.getInstance().getReference("StudentDetails");
+        databaseReferenceStudentSubjects = FirebaseDatabase.getInstance().getReference("StudentSubjectDetails");
 
 
         databaseReferenceDepartment = FirebaseDatabase.getInstance().getReference("DepartmentDetails");
@@ -285,16 +287,20 @@ public class AddSubjectstoStudentActivity extends AppCompatActivity {
             Toast.makeText(AddSubjectstoStudentActivity.this, "Please Select Semester", Toast.LENGTH_SHORT).show();
         }
 
+        if (studentSubject.equals("Select Subject")) {
+            Toast.makeText(AddSubjectstoStudentActivity.this, "Please Select Subject", Toast.LENGTH_SHORT).show();
+        }
         Query query = databaseReference.orderByChild("studentId").equalTo(studentId);
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
-                if (!studentDept.equals("Select Department") && !studentYear.equals("Select Year") && !studentSem.equals("Select Semester")) {
+                if (!studentDept.equals("Select Department") && !studentYear.equals("Select Year") && !studentSem.equals("Select Semester") && !studentSubject.equals("Select Subject")) {
 
 
                     StudentItemSubjects student = new StudentItemSubjects(studentId,studentName,studentRoll,studentDept,studentYear,studentSem,studentSubject,studentRandomID,studentSubjectId);
-                    databaseReference.child(studentId).child("SubjectDetails").child(studentSubjectId).setValue(student);
+                    databaseReference.child(studentRoll).child("SubjectDetails").child(studentSubjectId).setValue(student);
+                    databaseReferenceStudentSubjects.child(studentSubjectId).setValue(student);
                     Toast.makeText(AddSubjectstoStudentActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
                     spinnerDept.setSelection(0);
                     spinnerYear.setSelection(0);

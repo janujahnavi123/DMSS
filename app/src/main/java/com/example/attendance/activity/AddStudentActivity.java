@@ -57,11 +57,7 @@ public class AddStudentActivity extends AppCompatActivity {
         studentName = edtStudentName.getText().toString().trim();
         studentRoll = edtStudentRoll.getText().toString().trim();
 
-        if (TextUtils.isEmpty(studentName)) {
-            if ((TextUtils.isEmpty(studentRoll)))
-                Toast.makeText(this, "Please Enter Details", Toast.LENGTH_SHORT).show();
 
-        }
         if (TextUtils.isEmpty(studentName)) {
             Toast.makeText(this, "Please Enter Name", Toast.LENGTH_SHORT).show();
         }
@@ -83,7 +79,7 @@ public class AddStudentActivity extends AppCompatActivity {
                         Toast.makeText(AddStudentActivity.this, "Already Student Roll Number Exists", Toast.LENGTH_SHORT).show();
                     } else {
                         StudentItem student = new StudentItem(studentId, studentName, studentRoll);
-                        myRef.child(studentId).setValue(student);
+                        myRef.child(studentRoll).setValue(student);
                         Toast.makeText(AddStudentActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
                         edtStudentName.setText("");
                         edtStudentRoll.setText("");

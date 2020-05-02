@@ -49,6 +49,8 @@
             android:layout_gravity="center"
             android:layout_margin="3dp"
             android:layout_weight="1"
+            android:textColor="#FFFFFF"
+            android:background="#512DA8"
             android:text="Add" />
 
         <Button
@@ -59,6 +61,8 @@
             android:layout_gravity="center"
             android:layout_margin="3dp"
             android:layout_weight="1"
+            android:textColor="#FFFFFF"
+            android:background="#56A85A"
             android:text="View" />
     </LinearLayout>
 </LinearLayout>

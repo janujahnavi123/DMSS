@@ -2,60 +2,112 @@ package com.example.attendance.model;
 
 
 public class AttendanceModel {
-    private String id;
-    private String date;
-    private String name;
-    private String number;
-    private String status;
+
+    private String studentId;
+    private String studentName;
+    private String studentRoll;
+    private String studentDepartment;
+    private String studentYear;
+    private String studentSemester;
+    private String studentSubject;
+    private String studentRandomId;
+    private String studentSubjectId;
+    private boolean checkbox=false;
 
     public AttendanceModel() {
     }
 
-    public AttendanceModel(String id, String date, String name, String number, String status) {
-        this.id = id;
-        this.date = date;
-        this.name = name;
-        this.number = number;
-        this.status = status;
+
+    public AttendanceModel(String studentId, String studentName, String studentRoll, String studentDepartment, String studentYear, String studentSemester, String studentSubject, String studentRandomId, String studentSubjectId, boolean checkbox) {
+        this.studentId = studentId;
+        this.studentName = studentName;
+        this.studentRoll = studentRoll;
+        this.studentDepartment = studentDepartment;
+        this.studentYear = studentYear;
+        this.studentSemester = studentSemester;
+        this.studentSubject = studentSubject;
+        this.studentRandomId = studentRandomId;
+        this.studentSubjectId = studentSubjectId;
+        this.checkbox = checkbox;
     }
 
-    public String getId() {
-        return id;
+    public String getStudentId() {
+        return studentId;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setStudentId(String studentId) {
+        this.studentId = studentId;
     }
 
-    public String getDate() {
-        return date;
+    public String getStudentName() {
+        return studentName;
     }
 
-    public void setDate(String date) {
-        this.date = date;
+    public void setStudentName(String studentName) {
+        this.studentName = studentName;
     }
 
-    public String getName() {
-        return name;
+    public String getStudentRoll() {
+        return studentRoll;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setStudentRoll(String studentRoll) {
+        this.studentRoll = studentRoll;
     }
 
-    public String getNumber() {
-        return number;
+    public String getStudentDepartment() {
+        return studentDepartment;
     }
 
-    public void setNumber(String number) {
-        this.number = number;
+    public void setStudentDepartment(String studentDepartment) {
+        this.studentDepartment = studentDepartment;
     }
 
-    public String getStatus() {
-        return status;
+    public String getStudentYear() {
+        return studentYear;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setStudentYear(String studentYear) {
+        this.studentYear = studentYear;
+    }
+
+    public String getStudentSemester() {
+        return studentSemester;
+    }
+
+    public void setStudentSemester(String studentSemester) {
+        this.studentSemester = studentSemester;
+    }
+
+    public String getStudentSubject() {
+        return studentSubject;
+    }
+
+    public void setStudentSubject(String studentSubject) {
+        this.studentSubject = studentSubject;
+    }
+
+    public String getStudentRandomId() {
+        return studentRandomId;
+    }
+
+    public void setStudentRandomId(String studentRandomId) {
+        this.studentRandomId = studentRandomId;
+    }
+
+    public String getStudentSubjectId() {
+        return studentSubjectId;
+    }
+
+    public void setStudentSubjectId(String studentSubjectId) {
+        this.studentSubjectId = studentSubjectId;
+    }
+
+    public boolean isCheckbox() {
+        return checkbox;
+    }
+
+    public void setCheckbox(boolean checkbox) {
+        this.checkbox = checkbox;
     }
 }

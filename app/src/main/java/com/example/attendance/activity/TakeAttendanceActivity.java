@@ -1,6 +1,8 @@
 package com.example.attendance.activity;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -15,9 +17,10 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.attendance.R;
-import com.example.attendance.adapter.FacultyAttendanceAdapter;
+import com.example.attendance.adapter.ItemSelectedAdapter;
+import com.example.attendance.model.AttendanceModel;
 import com.example.attendance.model.StudentItem;
-import com.example.attendance.model.StudentItemSubjects;
+import com.example.attendance.model.StudentdataItem;
 import com.example.attendance.utils.MyAppPrefsManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -44,6 +47,8 @@ public class TakeAttendanceActivity extends AppCompatActivity {
     DatabaseReference databaseReference;
 
     DatabaseReference databaseReferenceStudents;
+    DatabaseReference databaseReferenceStudentSubjects;
+
 
     List<String> departments;
     List<String> years;
@@ -58,12 +63,22 @@ public class TakeAttendanceActivity extends AppCompatActivity {
     String email;
 
     MyAppPrefsManager myAppPrefsManager;
-    FacultyAttendanceAdapter facultyAttendanceAdapter;
-    List<StudentItemSubjects> studentItemList;
+    //FacultyAttendanceAdapter facultyAttendanceAdapter;
+    ItemSelectedAdapter facultyAttendanceAdapter;
+    //List<AttendanceModel> studentItemList;
+    ArrayList<AttendanceModel> studentItemList;
     List<StudentItem> studentItem;
     String facultyId;
     StudentItem details;
     Query query;
+    String namesPresent = "";
+    String namesAbsent = "";
+    String numPresent = "";
+    String numAbsent = "";
+    int presentCount = 0;
+    int absentCount = 0;
+    ProgressDialog progressDialog;
+    Button btnGet;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -72,10 +87,15 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
-            getSupportActionBar().setTitle("Add Faculty");
+            getSupportActionBar().setTitle("Add Attendance");
         }
 
         myAppPrefsManager = new MyAppPrefsManager(TakeAttendanceActivity.this);
+
+        progressDialog = new ProgressDialog(TakeAttendanceActivity.this);
+        progressDialog.setMessage("Please Wait...");
+        progressDialog.setCancelable(false);
+        progressDialog.show();
 
         email = myAppPrefsManager.getUserName();
 
@@ -83,14 +103,19 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         departments = new ArrayList<>();
+
         years = new ArrayList<>();
+
         semesters = new ArrayList<>();
+
         subjects = new ArrayList<>();
+
 
         studentItemList = new ArrayList<>();
         studentItem = new ArrayList<>();
         studentList = (ListView) findViewById(R.id.studentList);
 
+        btnGet = findViewById(R.id.btnGet);
         editEmpty = findViewById(R.id.editEmpty);
         spinnerDept = findViewById(R.id.spinnerDept);
         spinnerYear = findViewById(R.id.spinnerYear);
@@ -100,29 +125,34 @@ public class TakeAttendanceActivity extends AppCompatActivity {
 
         databaseReference = FirebaseDatabase.getInstance().getReference("FacultyDetails");
         databaseReferenceStudents = FirebaseDatabase.getInstance().getReference("StudentDetails");
+        databaseReferenceStudentSubjects = FirebaseDatabase.getInstance().getReference("StudentSubjectDetails");
+
 
         date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
 
-
+        editEmpty.setVisibility(View.VISIBLE);
         getDepartment(email);
 
-        btnSubmit.setOnClickListener(new View.OnClickListener() {
+        btnGet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-
+                next();
             }
         });
     }
 
     public void getDepartment(String email) {
 
-        Toast.makeText(this, "" + email, Toast.LENGTH_SHORT).show();
-
         Query query = databaseReference.orderByChild("facultyEmail").equalTo(email);
         query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+
+                departments.clear();
+                years.clear();
+                semesters.clear();
+                subjects.clear();
 
                 if (dataSnapshot.exists()) {
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
@@ -140,20 +170,13 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                             // initialize the array
 
 
-                            departments.clear();
-
-
-                            years.clear();
-
-
-                            semesters.clear();
-
-
                             for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
                                 String department = subjectSnapshot.child("facultyDept").getValue(String.class);
                                 String year = subjectSnapshot.child("facultyYear").getValue(String.class);
                                 String semester = subjectSnapshot.child("facultySem").getValue(String.class);
                                 String subject = subjectSnapshot.child("facultySubject").getValue(String.class);
+
+
                                 departments.add(department);
                                 years.add(year);
                                 semesters.add(semester);
@@ -161,33 +184,48 @@ public class TakeAttendanceActivity extends AppCompatActivity {
 
                                 HashSet<String> hashSet = new HashSet<String>(departments);
                                 departments.clear();
+                                //departments.add("Select Department");
                                 departments.addAll(hashSet);
+
 
                                 HashSet<String> hashSet1 = new HashSet<String>(years);
                                 years.clear();
+                                //years.add("Select Year");
                                 years.addAll(hashSet1);
 
                                 HashSet<String> hashSet2 = new HashSet<String>(semesters);
                                 semesters.clear();
+                                //semesters.add("Select Semester");
                                 semesters.addAll(hashSet2);
 
                                 HashSet<String> hashSet3 = new HashSet<String>(subjects);
                                 subjects.clear();
+                                //subjects.add("Select Subject");
                                 subjects.addAll(hashSet3);
                             }
 
 
-                            ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, departments);
+                            ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, departments);
                             departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                             spinnerDept.setAdapter(departmentAdapter);
 
+                            ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, years);
+                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerYear.setAdapter(yearAdapter);
+
+                            ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, semesters);
+                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerSemester.setAdapter(semesterAdapter);
+
+                            ArrayAdapter<String> subjectAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, subjects);
+                            subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            spinnerSubject.setAdapter(subjectAdapter);
 
                             spinnerDept.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                                     facultyDept = spinnerDept.getSelectedItem().toString().trim();
 
-                                    next(facultyDept, facultyYear, facultySem, facultySubject);
                                 }
 
                                 @Override
@@ -195,18 +233,13 @@ public class TakeAttendanceActivity extends AppCompatActivity {
 
                                 }
                             });
-
-
-                            ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, years);
-                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spinnerYear.setAdapter(yearAdapter);
 
 
                             spinnerYear.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                                     facultyYear = spinnerYear.getSelectedItem().toString().trim();
-                                    next(facultyDept, facultyYear, facultySem, facultySubject);
+
                                 }
 
                                 @Override
@@ -214,18 +247,13 @@ public class TakeAttendanceActivity extends AppCompatActivity {
 
                                 }
                             });
-
-
-                            ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, semesters);
-                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spinnerSemester.setAdapter(semesterAdapter);
 
 
                             spinnerSemester.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                                     facultySem = spinnerSemester.getSelectedItem().toString().trim();
-                                    next(facultyDept, facultyYear, facultySem, facultySubject);
+
                                 }
 
                                 @Override
@@ -234,20 +262,18 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                                 }
                             });
 
-                            ArrayAdapter<String> subjectAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_item, subjects);
-                            subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            spinnerSubject.setAdapter(subjectAdapter);
-
 
                             spinnerSubject.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                                 @Override
                                 public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                                     facultySubject = spinnerSubject.getSelectedItem().toString().trim();
-                                    next(facultyDept, facultyYear, facultySem, facultySubject);
+
+
                                 }
 
                                 @Override
                                 public void onNothingSelected(AdapterView<?> adapterView) {
+
 
                                 }
                             });
@@ -259,86 +285,34 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                         }
                     });
 
+                    progressDialog.dismiss();
+
                 }
             }
 
             @Override
             public void onCancelled(@NonNull DatabaseError databaseError) {
-
+                progressDialog.dismiss();
             }
         });
+
+       /* new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                next(facultyDept, facultyYear, facultySem, facultySubject);
+            }
+        },3000);*/
+
 
     }
 
 
-    public void next(String facultyDept, String facultyYear, String facultySem, String facultySubject) {
+    public void next() {
 
         facultyRandomID = facultyDept + "_" + facultyYear + "_" + facultySem + "_" + facultySubject;
-        Toast.makeText(this, "" + facultyRandomID, Toast.LENGTH_SHORT).show();
 
-
-        databaseReferenceStudents.addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-
-                studentItem.clear();
-                for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
-
-                    //String studentId=(String) dataSnapshot1.getKey();
-                    details = dataSnapshot1.getValue(StudentItem.class);
-                    studentItem.add(details);
-
-
-                }
-                query = databaseReferenceStudents.child(studentItem.get(0).getStudentId()).child("SubjectDetails").orderByChild("studentRandomId").equalTo(facultyRandomID);
-
-                query.addValueEventListener(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        studentItemList.clear();
-                        if (dataSnapshot.exists()) {
-
-                            for (DataSnapshot issue : dataSnapshot.getChildren()) {
-                                // do something with the individual "issues"
-                                StudentItemSubjects details = issue.getValue(StudentItemSubjects.class);
-
-                                studentItemList.add(details);
-
-                            }
-                            if (studentItemList.size() == 0) {
-                                editEmpty.setVisibility(View.VISIBLE);
-                            } else {
-                                editEmpty.setVisibility(View.GONE);
-                            }
-
-                            facultyAttendanceAdapter = new FacultyAttendanceAdapter(TakeAttendanceActivity.this, studentItemList);
-                            studentList.setAdapter(facultyAttendanceAdapter);
-
-                        } else {
-                            editEmpty.setVisibility(View.VISIBLE);
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                    }
-                });
-
-
-            }
-
-
-
-
-        @Override
-        public void onCancelled (@NonNull DatabaseError databaseError){
-
-        }
-    });
-
-
-        /*databaseReferenceStudents.addValueEventListener(new ValueEventListener() {
+        query = databaseReferenceStudentSubjects.orderByChild("studentRandomId").equalTo(facultyRandomID);
+        query.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
@@ -347,7 +321,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
 
                     for (DataSnapshot issue : dataSnapshot.getChildren()) {
                         // do something with the individual "issues"
-                        StudentItemSubjects details = issue.getValue(StudentItemSubjects.class);
+                        AttendanceModel details = issue.getValue(AttendanceModel.class);
 
                         studentItemList.add(details);
 
@@ -358,9 +332,98 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                         editEmpty.setVisibility(View.GONE);
                     }
 
-                    facultyAttendanceAdapter = new FacultyAttendanceAdapter(TakeAttendanceActivity.this, studentItemList);
+                    /*facultyAttendanceAdapter = new FacultyAttendanceAdapter(TakeAttendanceActivity.this, studentItemList);
+                    studentList.setAdapter(facultyAttendanceAdapter);*/
+
+                    facultyAttendanceAdapter = new ItemSelectedAdapter(TakeAttendanceActivity.this, studentItemList);
                     studentList.setAdapter(facultyAttendanceAdapter);
 
+                    studentList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                        @Override
+                        public void onItemClick(AdapterView adapterView, View view, int position, long l) {
+                            //Item Selected from list
+                            facultyAttendanceAdapter.setCheckBox(position);
+                            Log.d(TAG, "onItemClick: " + position);
+
+                        }
+                    });
+
+
+                    btnSubmit.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View view) {
+                            //Display All Item Selected
+
+                            List<String> listPresent = new ArrayList<>();
+                            List<String> listAbsent = new ArrayList<>();
+
+
+                            listPresent.clear();
+                            listAbsent.clear();
+                            for (AttendanceModel hold : facultyAttendanceAdapter.getAllData()) {
+                                if (hold.isCheckbox()) {
+
+
+                                    namesPresent += hold.getStudentName() + ",";
+                                    numPresent += hold.getStudentRoll() + ",";
+                                    listPresent.add(namesPresent);
+
+                                } else {
+
+                                    namesAbsent += hold.getStudentName() + ",";
+                                    numAbsent += hold.getStudentRoll() + ",";
+                                    listAbsent.add(namesAbsent);
+
+                                }
+                            }
+
+                            presentCount = listPresent.size();
+                            Log.d(TAG, "onClickPresent: " + presentCount);
+                            absentCount = listAbsent.size();
+                            Log.d(TAG, "onClickAbsent: " + absentCount);
+
+                            String id = databaseReference.push().getKey();
+                            String date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
+
+                            String randomId = facultyRandomID + "_" + date;
+
+                            //Query query = databaseReference.orderByChild("facultyId").equalTo(facultyId);
+                            databaseReference.child(facultyId).child("Attendance").child(randomId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                                    if (dataSnapshot.getChildrenCount() > 0) {
+                                        //username found
+
+                                        if (dataSnapshot.getValue() != null) {
+                                            Toast.makeText(TakeAttendanceActivity.this, "Already Attendance was taken", Toast.LENGTH_SHORT).show();
+
+                                        } else {
+                                            StudentdataItem student = new StudentdataItem(id, date, namesPresent, namesAbsent, numPresent, numAbsent, String.valueOf(presentCount), String.valueOf(absentCount), email, facultyRandomID, randomId);
+                                            databaseReference.child(facultyId).child("Attendance").child(randomId).setValue(student);
+                                            Toast.makeText(TakeAttendanceActivity.this, "Attendance was Sucessfully Taken", Toast.LENGTH_SHORT).show();
+
+                                        }
+
+                                    } else {
+                                        StudentdataItem student = new StudentdataItem(id, date, namesPresent, namesAbsent, numPresent, numAbsent, String.valueOf(presentCount), String.valueOf(absentCount), email, facultyRandomID, randomId);
+                                        databaseReference.child(facultyId).child("Attendance").child(randomId).setValue(student);
+                                        Toast.makeText(TakeAttendanceActivity.this, "Attendance was Sucessfully Taken", Toast.LENGTH_SHORT).show();
+
+                                    }
+
+
+                                }
+
+
+                                @Override
+                                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                                }
+                            });
+
+                        }
+                    });
                 } else {
                     editEmpty.setVisibility(View.VISIBLE);
                 }
@@ -370,10 +433,10 @@ public class TakeAttendanceActivity extends AppCompatActivity {
             public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
-        });*/
+        });
 
 
-}
+    }
 
 
     @Override

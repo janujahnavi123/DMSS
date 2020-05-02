@@ -32,7 +32,7 @@ public class ViewStudentSubjectActivity extends AppCompatActivity {
     DatabaseReference myRef;
     String TAG = "FIREBASE_DATA";
     TextView editEmpty;
-    String studentId;
+    String studentId,studentName,studentRoll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +47,8 @@ public class ViewStudentSubjectActivity extends AppCompatActivity {
         }
         Intent intent=getIntent();
         studentId=intent.getStringExtra("studentId");
+        studentName = intent.getStringExtra("studentName");
+        studentRoll = intent.getStringExtra("studentRoll");
 
         allSubjectList=findViewById(R.id.allSubjectList);
         editEmpty=findViewById(R.id.editEmpty);
@@ -55,7 +57,7 @@ public class ViewStudentSubjectActivity extends AppCompatActivity {
 
 
 
-        myRef.child(studentId).child("SubjectDetails").addValueEventListener(new ValueEventListener() {
+        myRef.child(studentRoll).child("SubjectDetails").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
