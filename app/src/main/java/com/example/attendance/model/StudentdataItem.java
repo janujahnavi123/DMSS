@@ -13,9 +13,12 @@ public class StudentdataItem {
     private String facultyEmail;
     private String facultyRandomId;
     private String randomId;
+    private String imageUrl;
 
 
-    public StudentdataItem(String id, String date, String namesListPresent, String namesListAbsent, String numListPresent, String numListAbsent, String namesListPresentCount, String namesListAbsentCount, String facultyEmail, String facultyRandomId, String randomId) {
+    public StudentdataItem(String imageUrl,String id, String date, String namesListPresent, String namesListAbsent, String numListPresent, String numListAbsent, String namesListPresentCount, String namesListAbsentCount, String facultyEmail, String facultyRandomId, String randomId) {
+
+        this.imageUrl = imageUrl;
         this.id = id;
         this.date = date;
         this.namesListPresent = namesListPresent;
@@ -27,6 +30,14 @@ public class StudentdataItem {
         this.facultyEmail = facultyEmail;
         this.facultyRandomId = facultyRandomId;
         this.randomId = randomId;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
+    }
+
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl;
     }
 
     public String getNumListPresent() {

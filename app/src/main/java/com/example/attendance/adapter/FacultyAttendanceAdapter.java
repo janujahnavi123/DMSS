@@ -2,14 +2,19 @@ package com.example.attendance.adapter;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
 import com.example.attendance.R;
+import com.example.attendance.activity.TeacherGraphActivity;
 import com.example.attendance.model.StudentdataItem;
 import com.google.firebase.database.DatabaseReference;
 
@@ -65,6 +70,10 @@ public class FacultyAttendanceAdapter extends BaseAdapter {
         TextView txtPresentCount = (TextView) convertView.findViewById(R.id.presentCount);
         TextView txtAbsentCount = (TextView) convertView.findViewById(R.id.absentCount);
 
+        Button btnGraph=(Button)convertView.findViewById(R.id.btnGraph);
+
+
+
         String listPresentNames = studentItemList.get(position).getNamesListPresent();
         listPresentNames = listPresentNames.replace(",", "\n");
 
@@ -87,6 +96,17 @@ public class FacultyAttendanceAdapter extends BaseAdapter {
         txtPresentCount.setText("Present Count : "+studentItemList.get(position).getNamesListPresentCount());
         txtAbsentCount.setText("Absent Count : "+studentItemList.get(position).getNamesListAbsentCount());
 
+
+        btnGraph.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent=new Intent(context, TeacherGraphActivity.class);
+                intent.putExtra("presentCount",studentItemList.get(position).getNamesListPresentCount());
+                intent.putExtra("absentCount",studentItemList.get(position).getNamesListAbsentCount());
+                intent.putExtra("image",studentItemList.get(position).getImageUrl());
+                context.startActivity(intent);
+            }
+        });
         return convertView;
     }
 

@@ -40,6 +40,8 @@
     <string name="add_subjects_to_teacher">Add Subjects to Teacher</string>
     <string name="select_date">Select Date</string>
     <string name="get">GET DATA</string>
+    <string name="click_above_camera_icon_to_upload_image">Click Above Camera Icon to Upload Image*.</string>
+    <string name="view_by_graph">View By Graph</string>
     <string-array name="subjectnames">
         <item>select the subject</item>
         <item>DBMS</item>

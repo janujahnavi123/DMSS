@@ -1,13 +1,22 @@
 package com.example.attendance.activity;
 
+import android.Manifest;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
+import android.content.Intent;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -15,13 +24,21 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.FileProvider;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.request.RequestOptions;
+import com.example.attendance.BuildConfig;
 import com.example.attendance.R;
 import com.example.attendance.adapter.ItemSelectedAdapter;
 import com.example.attendance.model.AttendanceModel;
 import com.example.attendance.model.StudentItem;
 import com.example.attendance.model.StudentdataItem;
+import com.example.attendance.utils.FileCompressor;
 import com.example.attendance.utils.MyAppPrefsManager;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -29,7 +46,18 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.MultiplePermissionsReport;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.multi.MultiplePermissionsListener;
 
+import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -39,6 +67,10 @@ import java.util.Locale;
 
 public class TakeAttendanceActivity extends AppCompatActivity {
 
+    public static final int REQUEST_TAKE_PHOTO = 1;
+    File mPhotoFile;
+    FileCompressor mCompressor;
+    ImageView imgProfile;
 
     Spinner spinnerDept, spinnerYear, spinnerSemester, spinnerSubject;
     String facultyDept, facultyYear, facultySem, facultySubject;
@@ -77,8 +109,9 @@ public class TakeAttendanceActivity extends AppCompatActivity {
     String numAbsent = "";
     int presentCount = 0;
     int absentCount = 0;
-    ProgressDialog progressDialog;
+    ProgressDialog progressDialog, regProgress;
     Button btnGet;
+    StorageReference storageReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,7 +124,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         }
 
         myAppPrefsManager = new MyAppPrefsManager(TakeAttendanceActivity.this);
-
+        regProgress = new ProgressDialog(TakeAttendanceActivity.this);
         progressDialog = new ProgressDialog(TakeAttendanceActivity.this);
         progressDialog.setMessage("Please Wait...");
         progressDialog.setCancelable(false);
@@ -115,6 +148,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         studentItem = new ArrayList<>();
         studentList = (ListView) findViewById(R.id.studentList);
 
+        imgProfile = findViewById(R.id.imgProfile);
         btnGet = findViewById(R.id.btnGet);
         editEmpty = findViewById(R.id.editEmpty);
         spinnerDept = findViewById(R.id.spinnerDept);
@@ -122,6 +156,11 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         spinnerSemester = findViewById(R.id.spinnerSemester);
         spinnerSubject = findViewById(R.id.spinnerSubject);
         btnSubmit = findViewById(R.id.btnSubmit);
+
+        mCompressor = new FileCompressor(TakeAttendanceActivity.this);
+
+        storageReference = FirebaseStorage.getInstance().getReference();
+
 
         databaseReference = FirebaseDatabase.getInstance().getReference("FacultyDetails");
         databaseReferenceStudents = FirebaseDatabase.getInstance().getReference("StudentDetails");
@@ -137,6 +176,13 @@ public class TakeAttendanceActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 next();
+            }
+        });
+
+        imgProfile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                selectImage();
             }
         });
     }
@@ -337,6 +383,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
 
                     facultyAttendanceAdapter = new ItemSelectedAdapter(TakeAttendanceActivity.this, studentItemList);
                     studentList.setAdapter(facultyAttendanceAdapter);
+                    facultyAttendanceAdapter.notifyDataSetChanged();
 
                     studentList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
                         @Override
@@ -354,79 +401,168 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                         public void onClick(View view) {
                             //Display All Item Selected
 
-                            List<String> listPresent = new ArrayList<>();
-                            List<String> listAbsent = new ArrayList<>();
+                            if (mPhotoFile == null) {
+                                Toast.makeText(TakeAttendanceActivity.this, "Please select Image", Toast.LENGTH_SHORT).show();
+                            } else {
+                                List<String> listPresent = new ArrayList<>();
+                                List<String> listAbsent = new ArrayList<>();
+                                listPresent.clear();
+                                listAbsent.clear();
+                                for (AttendanceModel hold : facultyAttendanceAdapter.getAllData()) {
+                                    if (hold.isCheckbox()) {
 
 
-                            listPresent.clear();
-                            listAbsent.clear();
-                            for (AttendanceModel hold : facultyAttendanceAdapter.getAllData()) {
-                                if (hold.isCheckbox()) {
+                                        namesPresent += hold.getStudentName() + ",";
+                                        numPresent += hold.getStudentRoll() + ",";
+                                        listPresent.add(namesPresent);
 
+                                    } else {
 
-                                    namesPresent += hold.getStudentName() + ",";
-                                    numPresent += hold.getStudentRoll() + ",";
-                                    listPresent.add(namesPresent);
+                                        namesAbsent += hold.getStudentName() + ",";
+                                        numAbsent += hold.getStudentRoll() + ",";
+                                        listAbsent.add(namesAbsent);
 
-                                } else {
-
-                                    namesAbsent += hold.getStudentName() + ",";
-                                    numAbsent += hold.getStudentRoll() + ",";
-                                    listAbsent.add(namesAbsent);
-
+                                    }
                                 }
-                            }
 
-                            presentCount = listPresent.size();
-                            Log.d(TAG, "onClickPresent: " + presentCount);
-                            absentCount = listAbsent.size();
-                            Log.d(TAG, "onClickAbsent: " + absentCount);
+                                presentCount = listPresent.size();
+                                Log.d(TAG, "onClickPresent: " + presentCount);
+                                absentCount = listAbsent.size();
+                                Log.d(TAG, "onClickAbsent: " + absentCount);
 
-                            String id = databaseReference.push().getKey();
-                            String date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
+                                String id = databaseReference.push().getKey();
+                                String date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
 
-                            String randomId = facultyRandomID + "_" + date;
+                                String randomId = facultyRandomID + "_" + date;
 
-                            //Query query = databaseReference.orderByChild("facultyId").equalTo(facultyId);
-                            databaseReference.child(facultyId).child("Attendance").child(randomId).addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                //Query query = databaseReference.orderByChild("facultyId").equalTo(facultyId);
+                                databaseReference.child(facultyId).child("Attendance").child(randomId).addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
 
-                                    if (dataSnapshot.getChildrenCount() > 0) {
-                                        //username found
+                                        if (dataSnapshot.getChildrenCount() > 0) {
+                                            //username found
 
-                                        if (dataSnapshot.getValue() != null) {
-                                            Toast.makeText(TakeAttendanceActivity.this, "Already Attendance was taken", Toast.LENGTH_SHORT).show();
+                                            if (dataSnapshot.getValue() != null) {
+                                                Toast.makeText(TakeAttendanceActivity.this, "Already Attendance was taken", Toast.LENGTH_SHORT).show();
+
+                                            } else {
+                                                StorageReference ref = storageReference.child("Images/" + id);
+                                                ref.putFile(Uri.fromFile(mPhotoFile)).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                                    @Override
+                                                    public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                                                        Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
+                                                        while (!uriTask.isSuccessful()) ;
+                                                        Uri downloadUrl = uriTask.getResult();
+                                                        assert downloadUrl != null;
+
+                                                        StudentdataItem student = new StudentdataItem(downloadUrl.toString(), id, date, namesPresent, namesAbsent, numPresent, numAbsent, String.valueOf(presentCount), String.valueOf(absentCount), email, facultyRandomID, randomId);
+                                                        databaseReference.child(facultyId).child("Attendance").child(randomId).setValue(student);
+                                                        Toast.makeText(TakeAttendanceActivity.this, "Attendance was Sucessfully Taken", Toast.LENGTH_SHORT).show();
+
+
+                                                        regProgress.dismiss();
+
+
+                                                    }
+                                                }).addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        regProgress.dismiss();
+                                                        listPresent.clear();
+                                                        listAbsent.clear();
+                                                        facultyAttendanceAdapter.notifyDataSetChanged();
+                                                        Toast.makeText(TakeAttendanceActivity.this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                    }
+                                                }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                                                    @Override
+                                                    public void onProgress(@NonNull UploadTask.TaskSnapshot taskSnapshot) {
+                                                        regProgress.show();
+                                                        regProgress.setCanceledOnTouchOutside(false);
+                                                        regProgress.setCancelable(false);
+
+                                                        double progress
+                                                                = (100.0
+                                                                * taskSnapshot.getBytesTransferred()
+                                                                / taskSnapshot.getTotalByteCount());
+                                                        regProgress.setMessage(
+                                                                "Uploaded "
+                                                                        + (int) progress + "%");
+                                                    }
+                                                });
+
+
+                                            }
 
                                         } else {
-                                            StudentdataItem student = new StudentdataItem(id, date, namesPresent, namesAbsent, numPresent, numAbsent, String.valueOf(presentCount), String.valueOf(absentCount), email, facultyRandomID, randomId);
-                                            databaseReference.child(facultyId).child("Attendance").child(randomId).setValue(student);
-                                            Toast.makeText(TakeAttendanceActivity.this, "Attendance was Sucessfully Taken", Toast.LENGTH_SHORT).show();
+                                            StorageReference ref = storageReference.child("Images/" + id);
+                                            ref.putFile(Uri.fromFile(mPhotoFile)).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                                @Override
+                                                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+
+                                                    Task<Uri> uriTask = taskSnapshot.getStorage().getDownloadUrl();
+                                                    while (!uriTask.isSuccessful()) ;
+                                                    Uri downloadUrl = uriTask.getResult();
+                                                    assert downloadUrl != null;
+
+                                                    StudentdataItem student = new StudentdataItem(downloadUrl.toString(), id, date, namesPresent, namesAbsent, numPresent, numAbsent, String.valueOf(presentCount), String.valueOf(absentCount), email, facultyRandomID, randomId);
+                                                    databaseReference.child(facultyId).child("Attendance").child(randomId).setValue(student);
+                                                    Toast.makeText(TakeAttendanceActivity.this, "Attendance was Sucessfully Taken", Toast.LENGTH_SHORT).show();
+
+
+                                                    regProgress.dismiss();
+
+
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    regProgress.dismiss();
+                                                    listPresent.clear();
+                                                    listAbsent.clear();
+                                                    facultyAttendanceAdapter.notifyDataSetChanged();
+                                                    Toast.makeText(TakeAttendanceActivity.this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                                }
+                                            }).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                                                @Override
+                                                public void onProgress(@NonNull UploadTask.TaskSnapshot taskSnapshot) {
+                                                    regProgress.show();
+                                                    regProgress.setCanceledOnTouchOutside(false);
+                                                    regProgress.setCancelable(false);
+
+                                                    double progress
+                                                            = (100.0
+                                                            * taskSnapshot.getBytesTransferred()
+                                                            / taskSnapshot.getTotalByteCount());
+                                                    regProgress.setMessage(
+                                                            "Uploaded "
+                                                                    + (int) progress + "%");
+                                                }
+                                            });
+
 
                                         }
 
-                                    } else {
-                                        StudentdataItem student = new StudentdataItem(id, date, namesPresent, namesAbsent, numPresent, numAbsent, String.valueOf(presentCount), String.valueOf(absentCount), email, facultyRandomID, randomId);
-                                        databaseReference.child(facultyId).child("Attendance").child(randomId).setValue(student);
-                                        Toast.makeText(TakeAttendanceActivity.this, "Attendance was Sucessfully Taken", Toast.LENGTH_SHORT).show();
 
                                     }
 
 
-                                }
-
-
-                                @Override
-                                public void onCancelled(@NonNull DatabaseError databaseError) {
-
-                                }
-                            });
-
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                        listPresent.clear();
+                                        listAbsent.clear();
+                                        facultyAttendanceAdapter.notifyDataSetChanged();
+                                    }
+                                });
+                            }
                         }
                     });
+
                 } else {
                     editEmpty.setVisibility(View.VISIBLE);
                 }
+
             }
 
             @Override
@@ -448,4 +584,162 @@ public class TakeAttendanceActivity extends AppCompatActivity {
 
         return super.onOptionsItemSelected(item);
     }
+
+
+    /**
+     * Alert dialog for capture or select from galley
+     */
+    private void selectImage() {
+        final CharSequence[] items = {"Take Photo",
+                "Cancel"};
+        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(TakeAttendanceActivity.this);
+        builder.setItems(items, (dialog, item) -> {
+            if (items[item].equals("Take Photo")) {
+                requestStoragePermission(true);
+            } else if (items[item].equals("Cancel")) {
+                dialog.dismiss();
+            }
+        });
+        builder.show();
+    }
+
+    /**
+     * Capture image from camera
+     */
+    private void dispatchTakePictureIntent() {
+        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                // Error occurred while creating the File
+            }
+            if (photoFile != null) {
+                Uri photoURI = FileProvider.getUriForFile(TakeAttendanceActivity.this,
+                        BuildConfig.APPLICATION_ID + ".provider",
+                        photoFile);
+
+                mPhotoFile = photoFile;
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
+
+            }
+        }
+    }
+
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            if (requestCode == REQUEST_TAKE_PHOTO) {
+                try {
+                    mPhotoFile = mCompressor.compressToFile(mPhotoFile);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Glide.with(TakeAttendanceActivity.this).load(mPhotoFile).apply(new RequestOptions().centerCrop().circleCrop().placeholder(R.drawable.ic_add_a_photo_black_24dp)).into(imgProfile);
+            }
+        }
+    }
+
+    /**
+     * Requesting multiple permissions (storage and camera) at once
+     * This uses multiple permission model from dexter
+     * On permanent denial opens settings dialog
+     */
+    private void requestStoragePermission(boolean isCamera) {
+        Dexter.withActivity(this).withPermissions(Manifest.permission.READ_EXTERNAL_STORAGE, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA)
+                .withListener(new MultiplePermissionsListener() {
+                    @Override
+                    public void onPermissionsChecked(MultiplePermissionsReport report) {
+                        // check if all permissions are granted
+                        if (report.areAllPermissionsGranted()) {
+                            if (isCamera) {
+                                dispatchTakePictureIntent();
+                            }
+                        }
+                        // check for permanent denial of any permission
+                        if (report.isAnyPermissionPermanentlyDenied()) {
+                            // show alert dialog navigating to Settings
+                            showSettingsDialog();
+                        }
+                    }
+
+                    @Override
+                    public void onPermissionRationaleShouldBeShown(List<PermissionRequest> permissions, PermissionToken token) {
+                        token.continuePermissionRequest();
+                    }
+                }).withErrorListener(error -> Toast.makeText(getApplicationContext(), "Error occurred! ", Toast.LENGTH_SHORT).show())
+                .onSameThread()
+                .check();
+    }
+
+
+    /**
+     * Showing Alert Dialog with Settings option
+     * Navigates user to app settings
+     * NOTE: Keep proper title and message depending on your app
+     */
+    private void showSettingsDialog() {
+        android.app.AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Need Permissions");
+        builder.setMessage("This app needs permission to use this feature. You can grant them in app settings.");
+        builder.setPositiveButton("GOTO SETTINGS", (dialog, which) -> {
+            dialog.cancel();
+            openSettings();
+        });
+        builder.setNegativeButton("Cancel", (dialog, which) -> dialog.cancel());
+        builder.show();
+
+    }
+
+    // navigating user to app settings
+    private void openSettings() {
+        Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+        Uri uri = Uri.fromParts("package", getPackageName(), null);
+        intent.setData(uri);
+        startActivityForResult(intent, 101);
+    }
+
+    /**
+     * Create file with current timestamp name
+     *
+     * @return
+     * @throws IOException
+     */
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
+        String mFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File mFile = File.createTempFile(mFileName, ".jpg", storageDir);
+        return mFile;
+    }
+
+    /**
+     * Get real file path from URI
+     *
+     * @param contentUri
+     * @return
+     */
+    public String getRealPathFromUri(Uri contentUri) {
+        Cursor cursor = null;
+        try {
+            String[] proj = {MediaStore.Images.Media.DATA};
+            cursor = getContentResolver().query(contentUri, proj, null, null, null);
+            assert cursor != null;
+            int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATA);
+            cursor.moveToFirst();
+            return cursor.getString(column_index);
+        } finally {
+            if (cursor != null) {
+                cursor.close();
+            }
+        }
+    }
+
 }

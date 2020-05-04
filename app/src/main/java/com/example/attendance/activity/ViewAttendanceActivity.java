@@ -116,6 +116,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         selectDate = findViewById(R.id.selectDate);
         btnGet = findViewById(R.id.btnGet);
 
+
         editEmpty = findViewById(R.id.editEmpty);
         spinnerDept = findViewById(R.id.spinnerDept);
         spinnerYear = findViewById(R.id.spinnerYear);
@@ -128,6 +129,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         databaseReferenceStudentSubjects = FirebaseDatabase.getInstance().getReference("StudentSubjectDetails");
 
         editEmpty.setVisibility(View.VISIBLE);
+
 
         selectDate.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -374,6 +376,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
 
                     facultyAttendanceAdapter = new FacultyAttendanceAdapter(ViewAttendanceActivity.this, studentItemList);
                     studentList.setAdapter(facultyAttendanceAdapter);
+
 
 
                 } else {

@@ -113,5 +113,17 @@
 
 
         </LinearLayout>
+
+
+        <Button
+            android:id="@+id/btnGraph"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            android:background="@color/colorPrimary"
+            android:text="@string/view_by_graph"
+            android:textColor="@android:color/white"
+            tools:ignore="ButtonStyle" />
+
     </LinearLayout>
 </androidx.cardview.widget.CardView>
