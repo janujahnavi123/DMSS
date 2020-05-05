@@ -38,20 +38,21 @@ import java.util.List;
 
 public class ViewAttendanceActivity extends AppCompatActivity {
 
-    Spinner spinnerDept, spinnerYear, spinnerSemester, spinnerSubject;
-    String facultyDept, facultyYear, facultySem, facultySubject;
+    Spinner spinnerDept, spinnerYear, spinnerSemester, spinnerSubject,spinnerPeriod;
+    String facultyDept, facultyYear, facultySem, facultySubject,facultyPeriod;
     String facultyUserID, facultyRandomID;
 
     DatabaseReference databaseReference;
 
     DatabaseReference databaseReferenceStudents;
     DatabaseReference databaseReferenceStudentSubjects;
-    DatabaseReference databaseReferenceAttendance;
+    DatabaseReference databaseReferencePeriod;
 
     List<String> departments;
     List<String> years;
     List<String> semesters;
     List<String> subjects;
+    List<String> periods;
     String subjectID;
     private FirebaseAuth mAuth;
     TextView editEmpty;
@@ -101,6 +102,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
 
         departments = new ArrayList<>();
+        periods = new ArrayList<>();
 
         years = new ArrayList<>();
 
@@ -122,11 +124,12 @@ public class ViewAttendanceActivity extends AppCompatActivity {
         spinnerYear = findViewById(R.id.spinnerYear);
         spinnerSemester = findViewById(R.id.spinnerSemester);
         spinnerSubject = findViewById(R.id.spinnerSubject);
-
+        spinnerPeriod = findViewById(R.id.spinnerPeriod);
 
         databaseReference = FirebaseDatabase.getInstance().getReference("FacultyDetails");
         databaseReferenceStudents = FirebaseDatabase.getInstance().getReference("StudentDetails");
         databaseReferenceStudentSubjects = FirebaseDatabase.getInstance().getReference("StudentSubjectDetails");
+        databaseReferencePeriod = FirebaseDatabase.getInstance().getReference("PeriodDetails");
 
         editEmpty.setVisibility(View.VISIBLE);
 
@@ -166,6 +169,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
 
 
         getDepartment(email);
+        getPeriods();
 
 
         btnGet.setOnClickListener(new View.OnClickListener() {
@@ -176,6 +180,60 @@ public class ViewAttendanceActivity extends AppCompatActivity {
             }
         });
 
+
+    }
+
+    public void getPeriods() {
+
+        databaseReferencePeriod.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+
+                periods.clear();
+
+                if (dataSnapshot.exists()) {
+
+
+                    for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
+                        String period = subjectSnapshot.child("period").getValue(String.class);
+
+
+                        periods.add(period);
+
+
+                    }
+
+
+                    ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(ViewAttendanceActivity.this, R.layout.support_simple_spinner_dropdown_item, periods);
+                    departmentAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+                    spinnerPeriod.setAdapter(departmentAdapter);
+
+
+                    spinnerPeriod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                            facultyPeriod = spinnerPeriod.getSelectedItem().toString().trim();
+
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> adapterView) {
+
+                        }
+                    });
+
+
+                    progressDialog.dismiss();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressDialog.dismiss();
+            }
+        });
 
     }
 
@@ -243,20 +301,20 @@ public class ViewAttendanceActivity extends AppCompatActivity {
                             }
 
 
-                            ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(ViewAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, departments);
-                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(ViewAttendanceActivity.this, R.layout.support_simple_spinner_dropdown_item, departments);
+                            departmentAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
                             spinnerDept.setAdapter(departmentAdapter);
 
-                            ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(ViewAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, years);
-                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(ViewAttendanceActivity.this, R.layout.support_simple_spinner_dropdown_item, years);
+                            departmentAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
                             spinnerYear.setAdapter(yearAdapter);
 
-                            ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(ViewAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, semesters);
-                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(ViewAttendanceActivity.this, R.layout.support_simple_spinner_dropdown_item, semesters);
+                            departmentAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
                             spinnerSemester.setAdapter(semesterAdapter);
 
-                            ArrayAdapter<String> subjectAdapter = new ArrayAdapter<String>(ViewAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, subjects);
-                            subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            ArrayAdapter<String> subjectAdapter = new ArrayAdapter<String>(ViewAttendanceActivity.this, R.layout.support_simple_spinner_dropdown_item, subjects);
+                            subjectAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
                             spinnerSubject.setAdapter(subjectAdapter);
 
                             spinnerDept.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -349,7 +407,7 @@ public class ViewAttendanceActivity extends AppCompatActivity {
 
         date = selectDate.getText().toString();
 
-        String randomId = facultyRandomID + "_" + date;
+        String randomId = facultyRandomID + "_" + date+"_"+facultyPeriod;
 
 
         Query query = databaseReference.child(facultyId).child("Attendance").orderByChild("randomId").equalTo(randomId);

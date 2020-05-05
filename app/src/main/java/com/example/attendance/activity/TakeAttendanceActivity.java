@@ -1,6 +1,7 @@
 package com.example.attendance.activity;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Intent;
@@ -72,20 +73,22 @@ public class TakeAttendanceActivity extends AppCompatActivity {
     FileCompressor mCompressor;
     ImageView imgProfile;
 
-    Spinner spinnerDept, spinnerYear, spinnerSemester, spinnerSubject;
-    String facultyDept, facultyYear, facultySem, facultySubject;
+    Spinner spinnerDept, spinnerYear, spinnerSemester, spinnerSubject, spinnerPeriod;
+    String facultyDept, facultyYear, facultySem, facultySubject, facultyPeriod;
     String facultyUserID, facultyRandomID;
     Button btnSubmit;
     DatabaseReference databaseReference;
 
     DatabaseReference databaseReferenceStudents;
     DatabaseReference databaseReferenceStudentSubjects;
+    DatabaseReference databaseReferencePeriods;
 
 
     List<String> departments;
     List<String> years;
     List<String> semesters;
     List<String> subjects;
+    List<String> periods;
     String subjectID;
     private FirebaseAuth mAuth;
     TextView editEmpty;
@@ -138,6 +141,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         departments = new ArrayList<>();
 
         years = new ArrayList<>();
+        periods = new ArrayList<>();
 
         semesters = new ArrayList<>();
 
@@ -154,6 +158,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         spinnerDept = findViewById(R.id.spinnerDept);
         spinnerYear = findViewById(R.id.spinnerYear);
         spinnerSemester = findViewById(R.id.spinnerSemester);
+        spinnerPeriod = findViewById(R.id.spinnerPeriod);
         spinnerSubject = findViewById(R.id.spinnerSubject);
         btnSubmit = findViewById(R.id.btnSubmit);
 
@@ -165,6 +170,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         databaseReference = FirebaseDatabase.getInstance().getReference("FacultyDetails");
         databaseReferenceStudents = FirebaseDatabase.getInstance().getReference("StudentDetails");
         databaseReferenceStudentSubjects = FirebaseDatabase.getInstance().getReference("StudentSubjectDetails");
+        databaseReferencePeriods = FirebaseDatabase.getInstance().getReference("PeriodDetails");
 
 
         date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
@@ -172,6 +178,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
         editEmpty.setVisibility(View.VISIBLE);
         getDepartment(email);
 
+        getPeriods();
         btnGet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -185,6 +192,61 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                 selectImage();
             }
         });
+    }
+
+
+    public void getPeriods() {
+
+        databaseReferencePeriods.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+
+                periods.clear();
+
+                if (dataSnapshot.exists()) {
+
+
+                    for (DataSnapshot subjectSnapshot : dataSnapshot.getChildren()) {
+                        String period = subjectSnapshot.child("period").getValue(String.class);
+
+
+                        periods.add(period);
+
+
+                    }
+
+
+                    ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, R.layout.support_simple_spinner_dropdown_item, periods);
+                    departmentAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
+                    spinnerPeriod.setAdapter(departmentAdapter);
+
+
+                    spinnerPeriod.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                            facultyPeriod = spinnerPeriod.getSelectedItem().toString().trim();
+
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> adapterView) {
+
+                        }
+                    });
+
+
+                    progressDialog.dismiss();
+
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+                progressDialog.dismiss();
+            }
+        });
+
     }
 
     public void getDepartment(String email) {
@@ -251,20 +313,20 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                             }
 
 
-                            ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, departments);
-                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            ArrayAdapter<String> departmentAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, R.layout.support_simple_spinner_dropdown_item, departments);
+                            departmentAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
                             spinnerDept.setAdapter(departmentAdapter);
 
-                            ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, years);
-                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            ArrayAdapter<String> yearAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, R.layout.support_simple_spinner_dropdown_item, years);
+                            departmentAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
                             spinnerYear.setAdapter(yearAdapter);
 
-                            ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, semesters);
-                            departmentAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            ArrayAdapter<String> semesterAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, R.layout.support_simple_spinner_dropdown_item, semesters);
+                            departmentAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
                             spinnerSemester.setAdapter(semesterAdapter);
 
-                            ArrayAdapter<String> subjectAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, android.R.layout.simple_spinner_dropdown_item, subjects);
-                            subjectAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                            ArrayAdapter<String> subjectAdapter = new ArrayAdapter<String>(TakeAttendanceActivity.this, R.layout.support_simple_spinner_dropdown_item, subjects);
+                            subjectAdapter.setDropDownViewResource(R.layout.support_simple_spinner_dropdown_item);
                             spinnerSubject.setAdapter(subjectAdapter);
 
                             spinnerDept.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -433,7 +495,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                                 String id = databaseReference.push().getKey();
                                 String date = new SimpleDateFormat("dd-MM-yyyy", Locale.getDefault()).format(new Date());
 
-                                String randomId = facultyRandomID + "_" + date;
+                                String randomId = facultyRandomID + "_" + date+"_"+facultyPeriod;
 
                                 //Query query = databaseReference.orderByChild("facultyId").equalTo(facultyId);
                                 databaseReference.child(facultyId).child("Attendance").child(randomId).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -444,6 +506,12 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                                             //username found
 
                                             if (dataSnapshot.getValue() != null) {
+
+                                                numPresent="";
+                                                namesPresent="";
+                                                namesAbsent="";
+                                                numAbsent="";
+
                                                 Toast.makeText(TakeAttendanceActivity.this, "Already Attendance was taken", Toast.LENGTH_SHORT).show();
 
                                             } else {
@@ -461,7 +529,13 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                                                         databaseReference.child(facultyId).child("Attendance").child(randomId).setValue(student);
                                                         Toast.makeText(TakeAttendanceActivity.this, "Attendance was Sucessfully Taken", Toast.LENGTH_SHORT).show();
 
-
+                                                        listPresent.clear();
+                                                        listAbsent.clear();
+                                                        numPresent="";
+                                                        namesPresent="";
+                                                        namesAbsent="";
+                                                        numAbsent="";
+                                                        facultyAttendanceAdapter.notifyDataSetChanged();
                                                         regProgress.dismiss();
 
 
@@ -472,6 +546,10 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                                                         regProgress.dismiss();
                                                         listPresent.clear();
                                                         listAbsent.clear();
+                                                        numPresent="";
+                                                        namesPresent="";
+                                                        namesAbsent="";
+                                                        numAbsent="";
                                                         facultyAttendanceAdapter.notifyDataSetChanged();
                                                         Toast.makeText(TakeAttendanceActivity.this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                                     }
@@ -510,7 +588,13 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                                                     databaseReference.child(facultyId).child("Attendance").child(randomId).setValue(student);
                                                     Toast.makeText(TakeAttendanceActivity.this, "Attendance was Sucessfully Taken", Toast.LENGTH_SHORT).show();
 
-
+                                                    listPresent.clear();
+                                                    listAbsent.clear();
+                                                    numPresent="";
+                                                    namesPresent="";
+                                                    namesAbsent="";
+                                                    numAbsent="";
+                                                    facultyAttendanceAdapter.notifyDataSetChanged();
                                                     regProgress.dismiss();
 
 
@@ -521,6 +605,10 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                                                     regProgress.dismiss();
                                                     listPresent.clear();
                                                     listAbsent.clear();
+                                                    numPresent="";
+                                                    namesPresent="";
+                                                    namesAbsent="";
+                                                    numAbsent="";
                                                     facultyAttendanceAdapter.notifyDataSetChanged();
                                                     Toast.makeText(TakeAttendanceActivity.this, "Failed " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                                 }
@@ -552,6 +640,10 @@ public class TakeAttendanceActivity extends AppCompatActivity {
                                     public void onCancelled(@NonNull DatabaseError databaseError) {
                                         listPresent.clear();
                                         listAbsent.clear();
+                                        numPresent="";
+                                        namesPresent="";
+                                        namesAbsent="";
+                                        numAbsent="";
                                         facultyAttendanceAdapter.notifyDataSetChanged();
                                     }
                                 });
@@ -713,6 +805,7 @@ public class TakeAttendanceActivity extends AppCompatActivity {
      */
     private File createImageFile() throws IOException {
         // Create an image file name
+        @SuppressLint("SimpleDateFormat")
         String timeStamp = new SimpleDateFormat("yyyyMMddHHmmss").format(new Date());
         String mFileName = "JPEG_" + timeStamp + "_";
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
