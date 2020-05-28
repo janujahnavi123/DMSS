@@ -204,13 +204,34 @@ public class AddSubjectsActivity extends AppCompatActivity {
                 }
                 if (!subject.isEmpty() && !department.equals("Select Department") && !year.equals("Select Year") && !semester.equals("Select Semester")) {
 
-                    SubjectItem subjectItem = new SubjectItem(subjectId, department, year, semester, subject, randomId,subjectRandomId);
-                    databaseReferenceSubject.child(subjectId).setValue(subjectItem);
-                    Toast.makeText(AddSubjectsActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
-                    spinnerDept.setSelection(0);
-                    spinnerYear.setSelection(0);
-                    spinnerSemester.setSelection(0);
-                    editSubject.setText("");
+
+
+
+                    databaseReferenceSubject.child(subjectRandomId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+
+                            if (dataSnapshot.getValue() != null) {
+                                //user exists, do something
+                                Toast.makeText(AddSubjectsActivity.this, "Already Subject Exits", Toast.LENGTH_SHORT).show();
+                            } else {
+                                SubjectItem subjectItem = new SubjectItem(subjectId, department, year, semester, subject, randomId,subjectRandomId);
+                                databaseReferenceSubject.child(subjectRandomId).setValue(subjectItem);
+                                Toast.makeText(AddSubjectsActivity.this, "Added Successfully", Toast.LENGTH_SHORT).show();
+                                spinnerDept.setSelection(0);
+                                spinnerYear.setSelection(0);
+                                spinnerSemester.setSelection(0);
+                                editSubject.setText("");
+
+
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                        }
+                    });
 
                 } else {
                     Toast.makeText(AddSubjectsActivity.this, "Enter Valid Details...!", Toast.LENGTH_SHORT).show();
